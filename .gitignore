@@ -12,6 +12,7 @@ __pycache__/
 # Environment variables
 .env
 .env.*
+.envrc
 
 # Data (원본 데이터는 보통 제외)
 data/raw/
