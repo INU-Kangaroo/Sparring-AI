@@ -1,0 +1,17 @@
+# Python venv
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment variables
+.env
+.env.*
+
+# Data (원본 데이터는 보통 제외)
+data/raw/
