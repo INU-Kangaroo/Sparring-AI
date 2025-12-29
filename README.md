@@ -1,3 +1,3 @@
-# Capstone AI
+# INU Capstone Design
 
-Glucose prediction AI (XGBoost) + FastAPI.
+혈당 예측을 통한 건강 관리 서비스
