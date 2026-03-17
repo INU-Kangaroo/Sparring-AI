@@ -162,7 +162,7 @@ def main():
     numeric_features = ["pre_glucose", "carbs_log", "steps", "intensity", "hour", "weekday"]
     categorical_features = ["meal_type"]
 
-    # ✅ target winsorize(훈련 데이터 기준으로 컷)
+    # target winsorize(훈련 데이터 기준으로 컷)
     y_train_raw = train_df["delta_60"].values.astype(float)
     low = float(np.quantile(y_train_raw, cfg.clip_low_q))
     high = float(np.quantile(y_train_raw, cfg.clip_high_q))

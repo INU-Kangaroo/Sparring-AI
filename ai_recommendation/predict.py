@@ -32,7 +32,7 @@ BREAKFAST_BLOCK_KEYWORDS = [
 ]
 
 # ---------------------------
-# ✅ 간식 정책
+# 간식 정책
 # ---------------------------
 DEFAULT_SNACK_MAX_KCAL = 250.0   # 사용자가 snack_max_kcal 안 주면 기본 상한
 SNACK_MIN_CAP_KCAL = 80.0       # 남은 칼로리 매우 적어도 최소 상한
@@ -504,7 +504,7 @@ def remaining_based_adjustment(food: dict, remaining: Dict[str, Optional[float]]
     return adj
 
 
-# ✅✅✅ 여기부터 “혈당 완충 점수” 추가
+# 여기부터 “혈당 완충 점수” 추가
 def glycemic_buffer_score(food: dict, goals: List[str]) -> float:
     """
     혈당이 튀지 않게(또는 천천히 오르게) 만드는 구조 점수
@@ -529,11 +529,11 @@ def glycemic_buffer_score(food: dict, goals: List[str]) -> float:
         score *= 1.4
 
     return score
-# ✅✅✅ 여기까지 추가
+# 여기까지 추가
 
 
 # ---------------------------
-# ✅ 간식 후보 판정 + 칼로리 상한
+# 간식 후보 판정 + 칼로리 상한
 # ---------------------------
 def is_snack_like(food: dict, goals: List[str]) -> bool:
     name = (food.get("name") or "")
@@ -629,7 +629,7 @@ def pick_top_n(
         if menu in used_names:
             return False
 
-        # ✅ 간식은 타입 중복 제한을 풀어야 10개 채움
+        # 간식은 타입 중복 제한을 풀어야 10개 채움
         if meal_time == "간식":
             used_names.add(menu)
             rec.append(menu)
@@ -647,7 +647,7 @@ def pick_top_n(
         return True
 
     # -------------------------
-    # ✅ seed 선택(원하는 것 1개만 남기기)
+    # seed 선택(원하는 것 1개만 남기기)
     # (A) 하루 기준 고정
     # base_seed = int(date.today().strftime("%Y%m%d"))
 
@@ -772,7 +772,7 @@ def recommend(input_data: dict) -> dict:
     if eaten_set:
         foods = [f for f in foods if f.get("name") not in eaten_set]
 
-    # ✅ base score 계산
+    # base score 계산
     scored_base: List[Tuple[dict, float]] = []
     for f in foods:
         score = f["tag_score"]
@@ -800,7 +800,7 @@ def recommend(input_data: dict) -> dict:
 
         score += remaining_based_adjustment(f, remaining)
 
-        # ✅✅✅ 혈당 덜 튀게(완충 구조) 점수 반영
+        # 혈당 덜 튀게(완충 구조) 점수 반영
         score += glycemic_buffer_score(f, goals)
 
         scored_base.append((f, score))
