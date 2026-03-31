@@ -1,0 +1,30 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# env
+.env
+.env.*
+.envrc
+
+# train file
+.csv
+
+# AI training files
+ai_glucose/project/models/
+ai_glucose/project/data_raw/
+ai_glucose/project/out_meals/
+ai_glucose/project/output/
+
+# training scripts
+ai_glucose/project/scripts
+ai_glucose/project/tools/
+ai_glucose/project/train_version/
+
+# raw dataset
+ai_glucose/project/glucobench.csvai/ai_glucose/code/last_data/
