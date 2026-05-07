@@ -1,16 +1,32 @@
-# Python
-venv/
+# Python cache
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
 
-# Jupyter
-.ipynb_checkpoints/
+# Virtual environments
+.venv/
+venv/
+env/
 
-# env
+# Local environment files
 .env
 .env.*
 .envrc
+.python-version
+
+# Local datasets and generated outputs
+data/
+
+# Training logs and temporary outputs
+catboost_info/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
 
 # train file
 .csv
