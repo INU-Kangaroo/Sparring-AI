@@ -34,3 +34,4 @@ Thumbs.db
 ai/ai_recommendation/
 ai/ai_glucose/CGMacros_model 
 ai/ai_glucose/code
+ai/ai_glucose/glucose_change_prediction
