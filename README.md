@@ -100,13 +100,13 @@
 
 학습 스크립트:
 
-- [final_train_model_service_shape.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/final_train_model_service_shape.py)
+- [final_train_model_service_shape.py](ai/ai_glucose/glucose_change_prediction/final_train_model_service_shape.py)
 
 서비스 실행 코드:
 
-- [main.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/main.py)
-- [predict.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/predict.py)
-- [schema.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/schema.py)
+- [main.py](ai/ai_glucose/glucose_change_prediction/main.py)
+- [predict.py](ai/ai_glucose/glucose_change_prediction/predict.py)
+- [schema.py](ai/ai_glucose/glucose_change_prediction/schema.py)
 
 ## Model Performance
 
@@ -180,14 +180,14 @@
 
 ## Project Structure
 
-- [main.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/main.py): FastAPI 서버 진입점
-- [predict.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/predict.py): 모델 로딩 및 예측 로직
-- [schema.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/schema.py): 요청/응답 스키마
-- [final_train_model_service_shape.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/final_train_model_service_shape.py): 앱 서비스용 최종 모델 학습
-- [final_api_test_service_shape.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/final_api_test_service_shape.py): API 응답 성능 검증
-- [compare_userinfo_feature_sets.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/compare_userinfo_feature_sets.py): 사용자 정보 feature 조합 비교 실험
-- [scripts/build_last_final_no_activity_plus_with_gender.py](/home/Capstone/ai/ai_glucose/glucose_change_prediction/scripts/build_last_final_no_activity_plus_with_gender.py): 최종 데이터셋 생성 스크립트
-- [models](/home/Capstone/ai/ai_glucose/glucose_change_prediction/models): 모델 및 평가 결과
+- [main.py](ai/ai_glucose/glucose_change_prediction/main.py): FastAPI 서버 진입점
+- [predict.py](ai/ai_glucose/glucose_change_prediction/predict.py): 모델 로딩 및 예측 로직
+- [schema.py](ai/ai_glucose/glucose_change_prediction/schema.py): 요청/응답 스키마
+- [final_train_model_service_shape.py](ai/ai_glucose/glucose_change_prediction/final_train_model_service_shape.py): 앱 서비스용 최종 모델 학습
+- [final_api_test_service_shape.py](ai/ai_glucose/glucose_change_prediction/final_api_test_service_shape.py): API 응답 성능 검증
+- [compare_userinfo_feature_sets.py](ai/ai_glucose/glucose_change_prediction/compare_userinfo_feature_sets.py): 사용자 정보 feature 조합 비교 실험
+- [scripts/build_last_final_no_activity_plus_with_gender.py](ai/ai_glucose/glucose_change_prediction/scripts/build_last_final_no_activity_plus_with_gender.py): 최종 데이터셋 생성 스크립트
+- [models](ai/ai_glucose/glucose_change_prediction/models): 모델 및 평가 결과
 
 ## Installation
 
