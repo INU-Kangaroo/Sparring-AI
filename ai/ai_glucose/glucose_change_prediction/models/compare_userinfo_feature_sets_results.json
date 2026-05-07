@@ -1,0 +1,1417 @@
+{
+  "data_path": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender.csv",
+  "bio_path": "/home/Capstone/ai/ai_glucose/CGMacros/bio.csv",
+  "train_subjects": [
+    "CGMacros-001",
+    "CGMacros-002",
+    "CGMacros-003",
+    "CGMacros-006",
+    "CGMacros-008",
+    "CGMacros-010",
+    "CGMacros-011",
+    "CGMacros-012",
+    "CGMacros-014",
+    "CGMacros-015",
+    "CGMacros-016",
+    "CGMacros-017",
+    "CGMacros-018",
+    "CGMacros-019",
+    "CGMacros-021",
+    "CGMacros-022",
+    "CGMacros-023",
+    "CGMacros-026",
+    "CGMacros-030",
+    "CGMacros-031",
+    "CGMacros-032",
+    "CGMacros-033",
+    "CGMacros-034",
+    "CGMacros-036",
+    "CGMacros-038",
+    "CGMacros-041",
+    "CGMacros-042",
+    "CGMacros-043",
+    "CGMacros-045",
+    "CGMacros-047",
+    "CGMacros-049"
+  ],
+  "test_subjects": [
+    "CGMacros-004",
+    "CGMacros-005",
+    "CGMacros-007",
+    "CGMacros-009",
+    "CGMacros-013",
+    "CGMacros-020",
+    "CGMacros-027",
+    "CGMacros-028",
+    "CGMacros-029",
+    "CGMacros-035",
+    "CGMacros-039",
+    "CGMacros-044",
+    "CGMacros-046",
+    "CGMacros-048"
+  ],
+  "feature_sets": {
+    "baseline": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose"
+    ],
+    "sex": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex"
+    ],
+    "age": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age"
+    ],
+    "bmi": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "bmi"
+    ],
+    "weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "weight_kg"
+    ],
+    "height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "height_cm"
+    ],
+    "sex__age": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age"
+    ],
+    "sex__bmi": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "bmi"
+    ],
+    "sex__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "weight_kg"
+    ],
+    "sex__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "height_cm"
+    ],
+    "age__bmi": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "bmi"
+    ],
+    "age__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "weight_kg"
+    ],
+    "age__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "height_cm"
+    ],
+    "bmi__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "bmi",
+      "weight_kg"
+    ],
+    "bmi__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "bmi",
+      "height_cm"
+    ],
+    "weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "weight_kg",
+      "height_cm"
+    ],
+    "sex__age__bmi": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "bmi"
+    ],
+    "sex__age__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "weight_kg"
+    ],
+    "sex__age__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "height_cm"
+    ],
+    "sex__bmi__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "bmi",
+      "weight_kg"
+    ],
+    "sex__bmi__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "bmi",
+      "height_cm"
+    ],
+    "sex__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "weight_kg",
+      "height_cm"
+    ],
+    "age__bmi__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "bmi",
+      "weight_kg"
+    ],
+    "age__bmi__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "bmi",
+      "height_cm"
+    ],
+    "age__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "weight_kg",
+      "height_cm"
+    ],
+    "bmi__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "bmi",
+      "weight_kg",
+      "height_cm"
+    ],
+    "sex__age__bmi__weight_kg": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "bmi",
+      "weight_kg"
+    ],
+    "sex__age__bmi__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "bmi",
+      "height_cm"
+    ],
+    "sex__age__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "weight_kg",
+      "height_cm"
+    ],
+    "sex__bmi__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "bmi",
+      "weight_kg",
+      "height_cm"
+    ],
+    "age__bmi__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "age",
+      "bmi",
+      "weight_kg",
+      "height_cm"
+    ],
+    "sex__age__bmi__weight_kg__height_cm": [
+      "meal_type",
+      "total_kcal",
+      "total_carbs",
+      "effective_carbs",
+      "total_protein",
+      "total_fat",
+      "total_fiber",
+      "baseline_glucose",
+      "sex",
+      "age",
+      "bmi",
+      "weight_kg",
+      "height_cm"
+    ]
+  },
+  "results": {
+    "baseline": {
+      "delta_30": {
+        "mae": 20.861695345677724,
+        "rmse": 28.660350535833672,
+        "r2": 0.005966179417681183,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 32.377634077171216,
+        "rmse": 41.339743475538484,
+        "r2": 0.15494852814517845,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 28.7584960852752,
+        "rmse": 39.8953695767864,
+        "r2": 0.25339438983885476,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 26.426016255224912,
+        "rmse": 35.600755360036615,
+        "r2": 0.3249538166960543,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex": {
+      "delta_30": {
+        "mae": 19.623402975543527,
+        "rmse": 26.777296666685903,
+        "r2": 0.13229594778040676,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 32.09983766289509,
+        "rmse": 41.03800785488409,
+        "r2": 0.1672394405441655,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 28.54601367010148,
+        "rmse": 38.77097265145882,
+        "r2": 0.294885482332908,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 26.26133908910957,
+        "rmse": 34.97863684336495,
+        "r2": 0.34834036365265697,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age": {
+      "delta_30": {
+        "mae": 22.418559918015763,
+        "rmse": 30.911506348180957,
+        "r2": -0.1563212414036852,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 35.60376080694007,
+        "rmse": 46.40792085400019,
+        "r2": -0.06495640857505491,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 33.352599922122145,
+        "rmse": 47.54144096898543,
+        "r2": -0.06020767963284501,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 30.458452287573017,
+        "rmse": 41.20960291637269,
+        "r2": 0.09549302486240807,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "bmi": {
+      "delta_30": {
+        "mae": 21.054145192564476,
+        "rmse": 28.57372799333323,
+        "r2": 0.011965800010300676,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 34.24038448301819,
+        "rmse": 43.452159081995134,
+        "r2": 0.0663796068772109,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 30.44483910665849,
+        "rmse": 43.05387064857039,
+        "r2": 0.13049783601635578,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 28.424191813226365,
+        "rmse": 37.08545908450707,
+        "r2": 0.26747512032312426,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "weight_kg": {
+      "delta_30": {
+        "mae": 22.66451063868964,
+        "rmse": 30.385828836103876,
+        "r2": -0.11732711828168596,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 36.318867711171684,
+        "rmse": 46.779859753886264,
+        "r2": -0.08209512047866885,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 31.95338771770006,
+        "rmse": 43.04673047658,
+        "r2": 0.13078621334897256,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 30.282256105603132,
+        "rmse": 39.2758947120845,
+        "r2": 0.1783871274208335,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "height_cm": {
+      "delta_30": {
+        "mae": 21.735703525694824,
+        "rmse": 29.456071878462698,
+        "r2": -0.04999644124113711,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 34.623075626219844,
+        "rmse": 44.0012905381095,
+        "r2": 0.04263303759575332,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 30.766246700880977,
+        "rmse": 42.5381125950874,
+        "r2": 0.15120522641883116,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 28.535298755574587,
+        "rmse": 38.51582032027977,
+        "r2": 0.20987943667647502,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age": {
+      "delta_30": {
+        "mae": 21.466875557457314,
+        "rmse": 29.096882859001294,
+        "r2": -0.024545137582264953,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 34.92749794784463,
+        "rmse": 45.77083731807087,
+        "r2": -0.035917864197182015,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 33.024656250623266,
+        "rmse": 45.7863360793553,
+        "r2": 0.01662752664812328,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 29.745700987318905,
+        "rmse": 40.741491151273024,
+        "r2": 0.11592542443445597,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__bmi": {
+      "delta_30": {
+        "mae": 20.764183148905964,
+        "rmse": 27.905116625131292,
+        "r2": 0.05766385601651591,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 34.48797770443595,
+        "rmse": 43.67591043743414,
+        "r2": 0.05673973250510156,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 27.842460685034464,
+        "rmse": 38.54291374547963,
+        "r2": 0.30315634491671106,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 28.02642594990406,
+        "rmse": 37.04482517132092,
+        "r2": 0.2690794712684339,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__weight_kg": {
+      "delta_30": {
+        "mae": 21.302656949020008,
+        "rmse": 28.859279515758953,
+        "r2": -0.007880712587194694,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 36.97786790517036,
+        "rmse": 47.20931551615091,
+        "r2": -0.10205435498573023,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 31.76353167118513,
+        "rmse": 42.079568792374516,
+        "r2": 0.1694059315247629,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.51997113983578,
+        "rmse": 41.003031604497956,
+        "r2": 0.10453833857390982,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__height_cm": {
+      "delta_30": {
+        "mae": 21.300303443184387,
+        "rmse": 28.86653580028098,
+        "r2": -0.008387612882360118,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 33.876776901584876,
+        "rmse": 43.67466373920777,
+        "r2": 0.05679358114190014,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 32.24474212493418,
+        "rmse": 43.77234470395336,
+        "r2": 0.10123555174659193,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 28.75097780048341,
+        "rmse": 39.138343043970934,
+        "r2": 0.18413193977069808,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__bmi": {
+      "delta_30": {
+        "mae": 22.859954605641857,
+        "rmse": 30.64692364630877,
+        "r2": -0.13661121766834872,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.38141843574628,
+        "rmse": 48.71746505075239,
+        "r2": -0.1735915457146353,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 38.93266452890355,
+        "rmse": 54.15537778537659,
+        "r2": -0.37571807528502377,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 33.7490330151194,
+        "rmse": 45.14847379241481,
+        "r2": -0.08567842764802358,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__weight_kg": {
+      "delta_30": {
+        "mae": 22.973908006252657,
+        "rmse": 30.924333304578223,
+        "r2": -0.15728108847928746,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.45839323711651,
+        "rmse": 47.699886893054426,
+        "r2": -0.12507715476091574,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 35.776604026030206,
+        "rmse": 48.40756508887291,
+        "r2": -0.09918992736240728,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 33.53694486126127,
+        "rmse": 42.90477406714869,
+        "r2": 0.019548084403740118,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__height_cm": {
+      "delta_30": {
+        "mae": 22.688335156265428,
+        "rmse": 31.22914718034949,
+        "r2": -0.1802076197386664,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 36.417589995524665,
+        "rmse": 47.93703560283296,
+        "r2": -0.13629201760049847,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 34.841592270967325,
+        "rmse": 49.96709709148331,
+        "r2": -0.17115533819504258,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.74989056955809,
+        "rmse": 45.2563500227307,
+        "r2": -0.09087279220643385,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "bmi__weight_kg": {
+      "delta_30": {
+        "mae": 22.49372064762857,
+        "rmse": 29.890040853368895,
+        "r2": -0.08116301953731297,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.2458838234751,
+        "rmse": 49.183713289136776,
+        "r2": -0.1961626460163315,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 33.13564725552078,
+        "rmse": 44.77321711933497,
+        "r2": 0.0596644263480165,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.047709871184082,
+        "rmse": 40.74813758488999,
+        "r2": 0.11563695083646308,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "bmi__height_cm": {
+      "delta_30": {
+        "mae": 22.026242556273676,
+        "rmse": 29.61748933480761,
+        "r2": -0.061535803762826635,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 35.90002878360804,
+        "rmse": 45.54113034090763,
+        "r2": -0.025546174955867862,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 31.586257000983924,
+        "rmse": 44.03803067071494,
+        "r2": 0.09029193907587918,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 29.99988155975226,
+        "rmse": 39.0416658822358,
+        "r2": 0.18815757729987304,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 23.087979865557372,
+        "rmse": 30.914100011187834,
+        "r2": -0.15651529428585653,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.872023028206186,
+        "rmse": 47.881441959370875,
+        "r2": -0.13365797974977855,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 31.761529931489942,
+        "rmse": 43.483683190777434,
+        "r2": 0.11305046634232296,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.12411976685353,
+        "rmse": 40.489071919706,
+        "r2": 0.12684628757588456,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__bmi": {
+      "delta_30": {
+        "mae": 21.964427111108755,
+        "rmse": 29.594606771895275,
+        "r2": -0.05989614578778668,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.042342577390684,
+        "rmse": 48.209133222260384,
+        "r2": -0.1492281464692713,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 38.05806323854722,
+        "rmse": 52.39469628342412,
+        "r2": -0.2877184503257846,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 33.227990221485165,
+        "rmse": 44.272089585032894,
+        "r2": -0.04393895042950424,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__weight_kg": {
+      "delta_30": {
+        "mae": 21.808700831036354,
+        "rmse": 29.595230557555645,
+        "r2": -0.059940826562906,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.400399789961334,
+        "rmse": 48.02129020047609,
+        "r2": -0.14028984351561302,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 33.62598581342436,
+        "rmse": 46.09036754771943,
+        "r2": 0.0035245427927895756,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.08314648797576,
+        "rmse": 41.07841928308419,
+        "r2": 0.10124254156353318,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__height_cm": {
+      "delta_30": {
+        "mae": 22.08075084106404,
+        "rmse": 30.524816459019696,
+        "r2": -0.12757201284309128,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.147620349615366,
+        "rmse": 49.08312392587549,
+        "r2": -0.19127492234480492,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 35.42971847871455,
+        "rmse": 49.867901419979354,
+        "r2": -0.16650995225285325,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.91712991055763,
+        "rmse": 45.5708066117434,
+        "r2": -0.10608497301119901,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__bmi__weight_kg": {
+      "delta_30": {
+        "mae": 21.693345646117017,
+        "rmse": 29.188791130225543,
+        "r2": -0.03102781759605633,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.31356250583673,
+        "rmse": 48.99913599206754,
+        "r2": -0.18720154194885197,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 32.805700792343785,
+        "rmse": 43.98967063012619,
+        "r2": 0.09228882052132337,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.869188155477485,
+        "rmse": 41.81421865932235,
+        "r2": 0.06875697565839223,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__bmi__height_cm": {
+      "delta_30": {
+        "mae": 21.356371017502976,
+        "rmse": 28.702301580652836,
+        "r2": 0.003054053367206211,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 35.19958264239295,
+        "rmse": 45.14939051462712,
+        "r2": -0.007978785463134797,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 31.402709411957154,
+        "rmse": 43.61907066244411,
+        "r2": 0.10751879170603584,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 30.21735028946318,
+        "rmse": 39.98441706122269,
+        "r2": 0.14847657797996017,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 22.0097912435032,
+        "rmse": 29.634579029073276,
+        "r2": -0.0627611983955807,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.07916738060589,
+        "rmse": 48.448685129257605,
+        "r2": -0.1606775860264944,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 32.48503512981056,
+        "rmse": 43.6655837497662,
+        "r2": 0.10561438664270639,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 30.819216105895908,
+        "rmse": 40.619580697260915,
+        "r2": 0.1212083278482694,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__bmi__weight_kg": {
+      "delta_30": {
+        "mae": 23.266348958042983,
+        "rmse": 31.427636757771285,
+        "r2": -0.19525787867571665,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.46084683717232,
+        "rmse": 49.88812442052107,
+        "r2": -0.2306709835169678,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 37.404739067663016,
+        "rmse": 51.9242640964088,
+        "r2": -0.26469838547805535,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 33.36891826456553,
+        "rmse": 43.98107228505017,
+        "r2": -0.030259642003236165,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__bmi__height_cm": {
+      "delta_30": {
+        "mae": 22.577598767670555,
+        "rmse": 30.294779287031155,
+        "r2": -0.1106411257207014,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.738488859746,
+        "rmse": 49.09680225236921,
+        "r2": -0.19193897615792732,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 36.274857008441195,
+        "rmse": 51.48895068025297,
+        "r2": -0.24358176789284403,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 34.148841142609626,
+        "rmse": 45.19043619871946,
+        "r2": -0.087697492605749,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 23.588696457112704,
+        "rmse": 31.724254078119447,
+        "r2": -0.2179262871983516,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.87204688844812,
+        "rmse": 49.72490172000425,
+        "r2": -0.22263120100797562,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 34.530738172051755,
+        "rmse": 48.13248709757536,
+        "r2": -0.08673303713407621,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 33.5870790751181,
+        "rmse": 43.354338269923716,
+        "r2": -0.001106276810003859,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "bmi__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 22.805861902714057,
+        "rmse": 30.56611064606488,
+        "r2": -0.1306248511449084,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.11025874891019,
+        "rmse": 49.12258653397219,
+        "r2": -0.19319125161951356,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 32.76787418043683,
+        "rmse": 44.871666240522394,
+        "r2": 0.05552458579921682,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.458685187455224,
+        "rmse": 41.592011070630804,
+        "r2": 0.0786282321628895,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__bmi__weight_kg": {
+      "delta_30": {
+        "mae": 22.356862869752028,
+        "rmse": 30.464315408852986,
+        "r2": -0.12310668315146889,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.50926086593324,
+        "rmse": 48.35605069843587,
+        "r2": -0.15624337202157235,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 35.829382815638326,
+        "rmse": 49.56991228504082,
+        "r2": -0.1526104816173739,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.714187242164286,
+        "rmse": 43.18626702203521,
+        "r2": 0.0066406314629186,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__bmi__height_cm": {
+      "delta_30": {
+        "mae": 22.376202471219372,
+        "rmse": 30.416176006277066,
+        "r2": -0.11956004394377606,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.130864089621994,
+        "rmse": 49.406929585322914,
+        "r2": -0.20704465810164674,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 36.59070564912498,
+        "rmse": 51.44289311319894,
+        "r2": -0.2413579613219985,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 34.23686927892855,
+        "rmse": 45.64678524973917,
+        "r2": -0.1097763225191557,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 22.168761248059297,
+        "rmse": 29.98037088317842,
+        "r2": -0.08770761133443594,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.50985438895683,
+        "rmse": 47.83909701081624,
+        "r2": -0.1316537183952633,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 34.33393687041721,
+        "rmse": 48.18569563359604,
+        "r2": -0.08913704483061569,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.10732106463478,
+        "rmse": 42.05940143443177,
+        "r2": 0.057804043312911,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__bmi__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 22.113595127915005,
+        "rmse": 29.67564742398622,
+        "r2": -0.06570884542497968,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.03397471199294,
+        "rmse": 48.57305261606611,
+        "r2": -0.16664413919470045,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 33.29420231371777,
+        "rmse": 45.205635245225864,
+        "r2": 0.04141326083006347,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 31.207888243255166,
+        "rmse": 41.23205550473242,
+        "r2": 0.09450713546873746,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "age__bmi__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 23.289928501594872,
+        "rmse": 31.3358280117978,
+        "r2": -0.18828472669484153,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 37.73788480795013,
+        "rmse": 48.43502198663488,
+        "r2": -0.16002302678695268,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 35.82090019004335,
+        "rmse": 50.487776439617534,
+        "r2": -0.19569042661969638,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 34.45123316254951,
+        "rmse": 44.68669015293518,
+        "r2": -0.06358312433966029,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    },
+    "sex__age__bmi__weight_kg__height_cm": {
+      "delta_30": {
+        "mae": 22.441141424760936,
+        "rmse": 30.28455361148671,
+        "r2": -0.10989148242641678,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_60": {
+        "mae": 38.08262430955102,
+        "rmse": 49.14985073030834,
+        "r2": -0.1945161178651562,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "delta_120": {
+        "mae": 34.9366259656466,
+        "rmse": 49.215048399778254,
+        "r2": -0.13616680609806142,
+        "train_rows": 938,
+        "test_rows": 424
+      },
+      "peak_delta": {
+        "mae": 32.50426223791957,
+        "rmse": 43.456264154026464,
+        "r2": -0.005819004193285737,
+        "train_rows": 938,
+        "test_rows": 424
+      }
+    }
+  }
+}

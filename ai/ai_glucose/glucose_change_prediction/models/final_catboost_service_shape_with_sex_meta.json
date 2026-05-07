@@ -1,0 +1,98 @@
+{
+  "input_csv": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender.csv",
+  "train_data_path": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender_train.csv",
+  "test_data_path": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender_test.csv",
+  "allowed_meal_types": [
+    "breakfast",
+    "dinner",
+    "lunch"
+  ],
+  "features": [
+    "meal_type",
+    "total_kcal",
+    "total_carbs",
+    "effective_carbs",
+    "total_protein",
+    "total_fat",
+    "total_fiber",
+    "baseline_glucose",
+    "sex"
+  ],
+  "targets": [
+    "delta_30",
+    "delta_60",
+    "delta_120",
+    "peak_delta"
+  ],
+  "rows_total": 1205,
+  "rows_train": 953,
+  "rows_test": 252,
+  "subjects_total": 45,
+  "subjects_train": 36,
+  "subjects_test": 9,
+  "test_subject_list": [
+    "CGMacros-005",
+    "CGMacros-009",
+    "CGMacros-013",
+    "CGMacros-028",
+    "CGMacros-029",
+    "CGMacros-039",
+    "CGMacros-044",
+    "CGMacros-046",
+    "CGMacros-048"
+  ],
+  "params_by_target": {
+    "delta_30": {
+      "iterations": 300,
+      "depth": 6,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 7,
+      "subsample": 1.0
+    },
+    "delta_60": {
+      "iterations": 500,
+      "depth": 6,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 7,
+      "subsample": 1.0
+    },
+    "delta_120": {
+      "iterations": 300,
+      "depth": 6,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 3,
+      "subsample": 0.9
+    },
+    "peak_delta": {
+      "iterations": 300,
+      "depth": 6,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 5,
+      "subsample": 0.9
+    }
+  },
+  "test_metrics": {
+    "delta_30": {
+      "mae": 20.686618690887844,
+      "rmse": 27.44723866721895,
+      "r2": 0.21117530695877196
+    },
+    "delta_60": {
+      "mae": 34.96199281525053,
+      "rmse": 44.400565918013825,
+      "r2": 0.16401190469018723
+    },
+    "delta_120": {
+      "mae": 27.220188983927585,
+      "rmse": 38.232777495393016,
+      "r2": 0.38822787607030085
+    },
+    "peak_delta": {
+      "mae": 25.617088467599224,
+      "rmse": 35.007625893398945,
+      "r2": 0.3917015833422146
+    }
+  },
+  "model_output": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/models/final_catboost_service_shape_with_sex.joblib",
+  "prediction_output": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/final_catboost_service_shape_with_sex_predictions.csv"
+}
