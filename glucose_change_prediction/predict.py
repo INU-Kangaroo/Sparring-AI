@@ -254,6 +254,48 @@ def _apply_postprocess_rules(
     return delta30, delta60, delta120, peak_delta
 
 
+def _soften_curve_near_peak(
+    peak_minute: int,
+    delta30: float,
+    delta60: float,
+    delta120: float,
+    peak_delta: float,
+) -> tuple[float, float, float]:
+    adjusted = {
+        30: float(delta30),
+        60: float(delta60),
+        120: float(delta120),
+    }
+
+    for anchor_minute in (30, 60, 120):
+        distance = abs(peak_minute - anchor_minute)
+        if distance == 0 or distance > 60:
+            continue
+
+        # Pull anchor points toward the peak without changing the peak itself.
+        # Closer anchors move more, while keeping the peak itself untouched.
+        proximity = 1.0 - (distance / 60.0)
+        proximity_weight = proximity * proximity
+        if anchor_minute == 30:
+            anchor_bias = 0.03
+            strength = min(0.45, 0.04 + proximity_weight * 0.24 + anchor_bias)
+        elif anchor_minute == 60:
+            anchor_bias = 0.12
+            strength = min(0.72, 0.08 + proximity_weight * 0.45 + anchor_bias)
+        else:
+            anchor_bias = 0.04
+            strength = min(0.38, 0.05 + proximity_weight * 0.18 + anchor_bias)
+
+        current_value = adjusted[anchor_minute]
+        lifted_value = current_value + (peak_delta - current_value) * strength
+
+        # Keep a small distance from the peak so the peak point remains visually distinct.
+        min_gap = 0.8 if distance <= 10 else 1.2 if distance <= 20 else 1.8
+        adjusted[anchor_minute] = min(peak_delta - min_gap, lifted_value)
+
+    return adjusted[30], adjusted[60], adjusted[120]
+
+
 def build_curve(
     delta30: float,
     delta60: float,
@@ -292,6 +334,13 @@ def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
         peak_delta = max(peak_delta, delta60)
     elif peak_minute == 120:
         peak_delta = max(peak_delta, delta120)
+    delta30, delta60, delta120 = _soften_curve_near_peak(
+        peak_minute=peak_minute,
+        delta30=delta30,
+        delta60=delta60,
+        delta120=delta120,
+        peak_delta=peak_delta,
+    )
 
     delta30 = round(delta30, 1)
     delta60 = round(delta60, 1)
