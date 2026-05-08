@@ -36,6 +36,7 @@ def evaluate_minutes(y_true, y_pred):
     return {
         "mae": float(diff.mean()),
         "rmse": float((mean_squared_error(y_true, y_pred) ** 0.5)),
+        "r2": float(r2_score(y_true, y_pred)),
         "exact_match": float((diff == 0).mean()),
         "within_5min": float((diff <= 5).mean()),
         "within_10min": float((diff <= 10).mean()),
@@ -198,7 +199,7 @@ def main():
         print(f"RMSE: {result['rmse']:.4f}")
         if "r2" in result:
             print(f"R2  : {result['r2']:.4f}")
-        else:
+        if "within_5min" in result:
             print(f"<=5m: {result['within_5min']:.4f}")
             print(f"<=10m: {result['within_10min']:.4f}")
 
