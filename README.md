@@ -2,7 +2,7 @@
 
 식사 영양 정보, 기저 혈당, 성별을 입력받아 식후 혈당 반응을 예측하는 머신러닝 모델 및 API 서버입니다.  
 이 저장소의 산출물은 앱 서비스에 연결할 수 있는 예측 모델과 FastAPI 기반 API 서버입니다.  
-모델은 혈당 변화량, 피크 시점, 반응 곡선을 예측합니다.
+모델은 식후 혈당 반응 곡선을 예측하고, 최고 혈당 시점과 최고 혈당값을 함께 제공합니다.
 
 ## Project Overview
 
@@ -15,14 +15,11 @@
 
 예측 결과는 단일 수치가 아니라 시간 흐름을 반영한 형태로 제공됩니다.
 
-- `delta30`: 식후 30분 혈당 변화량
-- `delta60`: 식후 60분 혈당 변화량
-- `delta120`: 식후 120분 혈당 변화량
-- `peakDelta`: 식후 120분 내 최고 혈당 상승량
-- `peakMinute`: 식후 120분 내 최고 혈당 상승 시점
+- `peakGlucose`: 식후 120분 내 최고 혈당값
+- `peakMinute`: 식후 120분 내 최고 혈당 시점
 - `curve`: 시간대별 혈당 반응 곡선
 
-해당 모델은 `delta120`의 예측값도 사용하지만 API 응답에서는 `delta120`을 top-level 필드로 따로 반환하지 않고, `curve`의 `minute=120` 값으로 제공합니다.
+`curve`는 절대 혈당값 기준으로 반환되며, `minute=0`, `30`, `60`, `120`과 피크 시점의 혈당값을 포함합니다.
 
 ## Dataset
 
@@ -78,8 +75,9 @@
 - `peak_delta`
 - `peak_minute`
 
+학습은 변화량 기준 target으로 수행하며, API 응답에서는 예측된 변화량에 `baselineGlucose`를 더해 절대 혈당값으로 변환해 반환합니다.
 `peak_delta`와 `peak_minute`는 식후 120분 구간에서 실제 최고 혈당값과 그 시점을 기준으로 만든 target입니다.
-서비스 응답의 `curve`는 이 예측값들을 사용해 구성합니다.
+서비스 응답의 `peakGlucose`와 `curve`는 예측된 변화량에 `baselineGlucose`를 더해 절대 혈당값으로 변환한 결과입니다.
 
 ## Model
 
@@ -122,6 +120,7 @@
 ## API Performance
 
 배포된 API 서버를 실제 호출해 측정한 성능은 다음과 같습니다.
+아래 지표는 응답의 `peakGlucose`, `peakMinute`, `curve`를 기준으로 계산한 평가 결과입니다.
 
 | Target | MAE | RMSE | R² |
 | --- | ---: | ---: | ---: |
@@ -162,16 +161,14 @@
 
 ```json
 {
-  "delta30": 12.4,
-  "delta60": 24.8,
-  "peakDelta": 27.1,
+  "peakGlucose": 151.2,
   "peakMinute": 75,
   "curve": [
-    { "minute": 0, "delta": 0.0 },
-    { "minute": 30, "delta": 12.4 },
-    { "minute": 60, "delta": 24.8 },
-    { "minute": 75, "delta": 27.1 },
-    { "minute": 120, "delta": 18.6 }
+    { "minute": 0, "glucose": 120.0 },
+    { "minute": 30, "glucose": 124.3 },
+    { "minute": 60, "glucose": 143.2 },
+    { "minute": 75, "glucose": 151.2 },
+    { "minute": 120, "glucose": 135.4 }
   ]
 }
 ```

@@ -35,7 +35,5 @@ ai/ai_glucose/glucose_change_prediction
 
 # Local experiment code and outputs
 glucose_change_prediction/compare_userinfo_feature_sets.py
-glucose_change_prediction/experiment_three_quick_wins.py
 glucose_change_prediction/models/compare_userinfo_feature_sets_results.json
 glucose_change_prediction/models/peak_model_comparison.json
-glucose_change_prediction/models/three_quick_wins_comparison.json
