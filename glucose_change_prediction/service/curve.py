@@ -5,6 +5,7 @@ def soften_curve_near_peak(
     delta120: float,
     peak_delta: float,
 ) -> tuple[float, float, float]:
+    # 예측된 피크와 고정 시점 값이 급격히 어긋나지 않도록 완만하게 조정
     adjusted = {
         30: float(delta30),
         60: float(delta60),
@@ -43,6 +44,7 @@ def build_curve_points(
     peak_delta: float,
     peak_minute: int,
 ) -> list[dict[str, float | int]]:
+    # 프론트에서 바로 그릴 수 있게 시간순 포인트 배열 구성
     points = {0: 0.0, 30: delta30, 60: delta60, 120: delta120}
     if peak_minute not in points:
         points[peak_minute] = peak_delta

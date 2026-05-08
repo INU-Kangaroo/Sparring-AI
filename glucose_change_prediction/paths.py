@@ -9,9 +9,6 @@ MODELS_DIR = PROJECT_DIR / "models"
 
 DATASET_NAME = "meal_glucose_with_gender"
 BASE_DATASET_NAME = "meal_glucose_base"
-MODEL_PREDICTIONS_NAME = "service_model_predictions"
-MODEL_METRICS_NAME = "service_model_metrics"
-API_PREDICTIONS_NAME = "api_evaluation_predictions"
 
 
 def get_cgmacros_dir() -> Path:

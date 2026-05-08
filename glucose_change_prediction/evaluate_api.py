@@ -1,11 +1,10 @@
-import json
 import os
 
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 
-from paths import API_PREDICTIONS_NAME, DATASET_NAME, MODELS_DIR, PROCESSED_DIR
+from paths import DATASET_NAME, PROCESSED_DIR
 from service.data_utils import ALLOWED_MEAL_TYPES, prepare_service_frame
 from service.metrics import evaluate_minutes, evaluate_regression
 from service.targets import API_EVALUATION_TARGETS, API_RESPONSE_REQUIRED_KEYS
@@ -16,9 +15,6 @@ BASE_URL = os.environ["GLUCOSE_API_BASE_URL"]
 PREDICT_PATH = "/predict-glucose"
 
 TEST_CSV = PROCESSED_DIR / f"{DATASET_NAME}_test.csv"
-
-OUTPUT_PRED_CSV = PROCESSED_DIR / f"{API_PREDICTIONS_NAME}.csv"
-OUTPUT_METRICS_JSON = MODELS_DIR / "api_evaluation_metrics.json"
 
 REQUEST_TIMEOUT = 10
 
@@ -42,13 +38,9 @@ REQUIRED_TARGET_COLS = [
 
 
 def make_payload(row: pd.Series) -> dict:
-    sex = str(row["sex"]).strip().upper()
-    if sex not in {"M", "F"}:
-        raise ValueError(f"잘못된 sex 값: {sex}")
-
     return {
         "baselineGlucose": float(row["baseline_glucose"]),
-        "sex": sex,
+        "sex": str(row["sex"]).strip().upper(),
         "meal": {
             "carbs": float(row["total_carbs"]),
             "protein": float(row["total_protein"]),
@@ -68,6 +60,7 @@ def request_predict(payload: dict) -> dict:
         raise RuntimeError(f"HTTP {resp.status_code}: {resp.text}")
 
     data = resp.json()
+    # 평가에 필요한 핵심 응답 키만 확인
     missing = API_RESPONSE_REQUIRED_KEYS - set(data.keys())
     if missing:
         raise ValueError(f"Response missing keys: {sorted(missing)}")
@@ -109,6 +102,7 @@ def collect_predictions(test_df: pd.DataFrame) -> dict[str, list]:
         payload = make_payload(row)
 
         try:
+            # 서버 응답을 평가용 컬럼 체계로 다시 정리
             result = request_predict(payload)
             curve_delta30 = pick_delta(result["curve"], 30)
             curve_delta60 = pick_delta(result["curve"], 60)
@@ -151,6 +145,7 @@ def get_valid_rows(out_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def build_metrics(valid_df: pd.DataFrame, out_df: pd.DataFrame) -> dict:
+    # 응답 필드별로 같은 기준의 회귀 지표 계산
     metrics = {
         "server_base_env": "GLUCOSE_API_BASE_URL",
         "predict_path": PREDICT_PATH,
@@ -184,20 +179,6 @@ def print_metrics(metrics: dict) -> None:
             print(f"<=15m: {result['within_15min']:.4f}")
 
 
-def save_outputs(out_df: pd.DataFrame, metrics: dict) -> None:
-    OUTPUT_PRED_CSV.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_METRICS_JSON.parent.mkdir(parents=True, exist_ok=True)
-
-    out_df.to_csv(OUTPUT_PRED_CSV, index=False)
-
-    with open(OUTPUT_METRICS_JSON, "w", encoding="utf-8") as f:
-        json.dump(metrics, f, ensure_ascii=False, indent=2)
-
-    print("\n=== 저장 완료 ===")
-    print("-", OUTPUT_PRED_CSV)
-    print("-", OUTPUT_METRICS_JSON)
-
-
 def main():
     test_df = load_test_frame()
 
@@ -220,7 +201,6 @@ def main():
 
     metrics = build_metrics(valid_df, out_df)
     print_metrics(metrics)
-    save_outputs(out_df, metrics)
 
 
 if __name__ == "__main__":

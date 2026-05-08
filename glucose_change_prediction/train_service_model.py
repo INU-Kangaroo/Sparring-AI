@@ -1,10 +1,8 @@
-import json
-
 import pandas as pd
 import joblib
 from catboost import CatBoostRegressor
 
-from paths import DATASET_NAME, MODEL_METRICS_NAME, MODELS_DIR, MODEL_PREDICTIONS_NAME, PROCESSED_DIR
+from paths import DATASET_NAME, MODELS_DIR, PROCESSED_DIR
 from service.data_utils import ALLOWED_MEAL_TYPES, get_cat_feature_indices, prepare_service_frame, require_columns
 from service.metrics import evaluate_minutes, evaluate_regression
 from service.targets import MODEL_TARGETS
@@ -15,9 +13,6 @@ TRAIN_DATA_PATH = PROCESSED_DIR / f"{DATASET_NAME}_train.csv"
 TEST_DATA_PATH = PROCESSED_DIR / f"{DATASET_NAME}_test.csv"
 
 MODEL_OUTPUT = MODELS_DIR / "service_model.joblib"
-META_OUTPUT = MODELS_DIR / "service_model_meta.json"
-METRICS_OUTPUT = MODELS_DIR / f"{MODEL_METRICS_NAME}.json"
-PRED_OUTPUT = PROCESSED_DIR / f"{MODEL_PREDICTIONS_NAME}.csv"
 
 TARGETS = MODEL_TARGETS
 FEATURES = [
@@ -107,6 +102,7 @@ def train_target_model(
     test_df: pd.DataFrame,
     cat_features: list[int],
 ):
+    # 타깃별 결측 제거 뒤 동일한 피처 구조로 학습과 평가 분리
     local_train = train_df.dropna(subset=FEATURES + [target]).copy()
     local_test = test_df.dropna(subset=FEATURES + [target]).copy()
 
@@ -128,6 +124,7 @@ def train_target_model(
     model = CatBoostRegressor(**params)
     model.fit(X_train, y_train, cat_features=cat_features)
 
+    # 테스트 세트 기준으로 타깃별 성능 확인
     pred = model.predict(X_test)
     result = evaluate_target(target, y_test, pred)
 
@@ -157,30 +154,20 @@ def build_dataset_stats(train_df: pd.DataFrame, test_df: pd.DataFrame, full_df: 
     }
 
 
-def save_outputs(bundle: dict, pred_base: pd.DataFrame, metrics_payload: dict, meta: dict) -> None:
+def save_outputs(bundle: dict) -> None:
     MODEL_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    PRED_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 
     joblib.dump(bundle, MODEL_OUTPUT)
-    pred_base.to_csv(PRED_OUTPUT, index=False, encoding="utf-8-sig")
-
-    with open(META_OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
-
-    with open(METRICS_OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(metrics_payload, f, ensure_ascii=False, indent=2)
 
     print("\n=== 저장 완료 ===")
     print(f"- {MODEL_OUTPUT}")
-    print(f"- {META_OUTPUT}")
-    print(f"- {METRICS_OUTPUT}")
-    print(f"- {PRED_OUTPUT}")
 
 
 def main():
     train_df = pd.read_csv(TRAIN_DATA_PATH).copy()
     test_df = pd.read_csv(TEST_DATA_PATH).copy()
 
+    # 서비스에서 실제로 받을 범주 체계에 맞춰 학습 데이터 정리
     train_df = prepare_service_frame(
         train_df,
         sex_missing_message="데이터셋에 'sex' 또는 'Gender' 컬럼이 없습니다.",
@@ -200,16 +187,13 @@ def main():
 
     full_df = pd.concat([train_df, test_df], axis=0, ignore_index=True)
     print_dataset_summary(train_df, test_df, full_df)
-    dataset_stats = build_dataset_stats(train_df, test_df, full_df)
-
     models = {}
     metrics = {}
-    pred_base = test_df[["subject"]].copy()
-
     cat_features = get_cat_feature_indices(train_df, FEATURES)
 
+    # 응답 필드별 모델을 따로 학습해 하나의 번들로 저장
     for target in TARGETS:
-        model, result, test_index, true_values, pred_values = train_target_model(
+        model, result, _, _, _ = train_target_model(
             target,
             train_df,
             test_df,
@@ -217,32 +201,13 @@ def main():
         )
         models[target] = model
         metrics[target] = result
-        pred_base.loc[test_index, f"{target}_true"] = true_values
-        pred_base.loc[test_index, f"{target}_pred"] = pred_values
 
     bundle = {
         "features": FEATURES,
         "targets": TARGETS,
         "models": models,
     }
-    metrics_payload = {
-        "dataset_name": DATASET_NAME,
-        "input_csv": str(INPUT_CSV_PATH.name),
-        "train_data_name": TRAIN_DATA_PATH.name,
-        "test_data_name": TEST_DATA_PATH.name,
-        **dataset_stats,
-        "results": metrics,
-    }
-    meta = {
-        "input_csv": str(INPUT_CSV_PATH),
-        "train_data_path": str(TRAIN_DATA_PATH),
-        "test_data_path": str(TEST_DATA_PATH),
-        "features": FEATURES,
-        "targets": TARGETS,
-        "params_by_target": PARAMS_BY_TARGET,
-        "test_metrics": metrics,
-    }
-    save_outputs(bundle, pred_base, metrics_payload, meta)
+    save_outputs(bundle)
 
 
 if __name__ == "__main__":

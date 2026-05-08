@@ -11,11 +11,9 @@ from service.curve import build_curve_points, soften_curve_near_peak
 
 MODEL_PATH = MODELS_DIR / "service_model.joblib"
 REQUIRED_BUNDLE_KEYS = {"features", "targets", "models"}
-ALLOWED_MEAL_TYPES = {"breakfast", "lunch", "dinner"}
-
-
 @lru_cache(maxsize=1)
 def load_model_bundle() -> dict[str, Any]:
+    # 서버 시작 후 반복 요청에서 같은 모델 번들 재사용
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
 
@@ -28,34 +26,18 @@ def load_model_bundle() -> dict[str, Any]:
 
 
 def parse_payload(payload: dict[str, Any]) -> dict[str, Any]:
-    baseline_glucose = float(payload["baselineGlucose"])
-    sex = str(payload["sex"]).strip().upper()
-    if sex not in {"M", "F"}:
-        raise ValueError("sex must be 'M' or 'F'")
-
     meal = payload["meal"]
-    total_carbs = float(meal["carbs"])
-    total_protein = float(meal["protein"])
-    total_fat = float(meal["fat"])
-    total_fiber = float(meal["fiber"])
-    total_kcal = float(meal["kcal"])
-    meal_type = str(meal["mealType"]).strip().lower()
-
-    if meal_type not in ALLOWED_MEAL_TYPES:
-        raise ValueError("mealType must be one of: breakfast, lunch, dinner")
-    if total_fiber > total_carbs:
-        raise ValueError("fiber cannot be greater than carbs")
-
+    # 요청 필드를 학습 피처 이름과 순서에 맞춰 변환
     return {
-        "meal_type": meal_type,
-        "total_kcal": total_kcal,
-        "total_carbs": total_carbs,
-        "effective_carbs": max(total_carbs - total_fiber, 0.0),
-        "total_protein": total_protein,
-        "total_fat": total_fat,
-        "total_fiber": total_fiber,
-        "baseline_glucose": baseline_glucose,
-        "sex": sex,
+        "meal_type": meal["mealType"],
+        "total_kcal": float(meal["kcal"]),
+        "total_carbs": float(meal["carbs"]),
+        "effective_carbs": float(meal["carbs"] - meal["fiber"]),
+        "total_protein": float(meal["protein"]),
+        "total_fat": float(meal["fat"]),
+        "total_fiber": float(meal["fiber"]),
+        "baseline_glucose": float(payload["baselineGlucose"]),
+        "sex": payload["sex"],
     }
 
 
@@ -65,12 +47,14 @@ def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
     frame = pd.DataFrame([row], columns=bundle["features"])
     models = bundle["models"]
 
+    # 각 시점 변화량과 피크 정보를 개별 모델로 예측
     delta30 = float(models["delta_30"].predict(frame)[0])
     delta60 = float(models["delta_60"].predict(frame)[0])
     delta120 = float(models["delta_120"].predict(frame)[0])
     peak_delta = float(models["peak_delta"].predict(frame)[0])
     peak_minute = int(np.clip(np.rint(models["peak_minute"].predict(frame)[0]), 1, 120))
 
+    # 피크가 고정 시점과 겹치면 해당 시점 값보다 작아지지 않게 보정
     if peak_minute == 30:
         peak_delta = max(peak_delta, delta30)
     elif peak_minute == 60:
@@ -91,6 +75,7 @@ def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
     delta120 = round(delta120, 1)
     peak_delta = round(peak_delta, 1)
 
+    # 응답 스키마에 맞춰 피크 정보와 곡선 포인트 조합
     return {
         "peakDelta": peak_delta,
         "peakMinute": peak_minute,
