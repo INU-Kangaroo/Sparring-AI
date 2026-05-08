@@ -48,10 +48,10 @@ class PredictRequest(BaseModel):
 
 class CurvePoint(BaseModel):
     minute: int
-    glucose: float
+    delta: float
 
 
 class PredictResponse(BaseModel):
-    peakGlucose: float
+    peakDelta: float
     peakMinute: int
     curve: list[CurvePoint]

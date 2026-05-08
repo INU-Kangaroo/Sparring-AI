@@ -255,7 +255,6 @@ def _apply_postprocess_rules(
 
 
 def build_curve(
-    baseline_glucose: float,
     delta30: float,
     delta60: float,
     delta120: float,
@@ -269,7 +268,7 @@ def build_curve(
         points[peak_minute] = max(points[peak_minute], peak_delta)
 
     return [
-        {"minute": minute, "glucose": round(baseline_glucose + points[minute], 1)}
+        {"minute": minute, "delta": round(points[minute], 1)}
         for minute in sorted(points)
     ]
 
@@ -286,7 +285,6 @@ def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
     delta120 = float(models["delta_120"].predict(frame)[0])
     peak_delta = float(models["peak_delta"].predict(frame)[0])
     peak_minute = int(np.clip(np.rint(models["peak_minute"].predict(frame)[0]), 1, 120))
-    baseline_glucose = float(row["baseline_glucose"])
 
     if peak_minute == 30:
         peak_delta = max(peak_delta, delta30)
@@ -299,13 +297,11 @@ def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
     delta60 = round(delta60, 1)
     delta120 = round(delta120, 1)
     peak_delta = round(peak_delta, 1)
-    peak_glucose = round(baseline_glucose + peak_delta, 1)
 
     return {
-        "peakGlucose": peak_glucose,
+        "peakDelta": peak_delta,
         "peakMinute": peak_minute,
         "curve": build_curve(
-            baseline_glucose=baseline_glucose,
             delta30=delta30,
             delta60=delta60,
             delta120=delta120,

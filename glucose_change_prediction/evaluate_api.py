@@ -73,7 +73,7 @@ def call_server(payload: dict) -> dict:
         raise RuntimeError(f"HTTP {resp.status_code}: {resp.text}")
 
     data = resp.json()
-    required_keys = {"peakGlucose", "peakMinute", "curve"}
+    required_keys = {"peakDelta", "peakMinute", "curve"}
     missing = required_keys - set(data.keys())
     if missing:
         raise ValueError(f"Response missing keys: {sorted(missing)}")
@@ -81,13 +81,13 @@ def call_server(payload: dict) -> dict:
     return data
 
 
-def extract_curve_glucose(curve, minute: int):
+def extract_curve_delta(curve, minute: int):
     if not isinstance(curve, list):
         return None
 
     for point in curve:
         if isinstance(point, dict) and point.get("minute") == minute:
-            return float(point.get("glucose"))
+            return float(point.get("delta"))
     return None
 
 
@@ -135,22 +135,21 @@ def main():
 
         try:
             result = call_server(payload)
-            baseline_glucose = float(row["baseline_glucose"])
-            curve_glucose30 = extract_curve_glucose(result["curve"], 30)
-            curve_glucose60 = extract_curve_glucose(result["curve"], 60)
-            curve_glucose120 = extract_curve_glucose(result["curve"], 120)
+            curve_delta30 = extract_curve_delta(result["curve"], 30)
+            curve_delta60 = extract_curve_delta(result["curve"], 60)
+            curve_delta120 = extract_curve_delta(result["curve"], 120)
 
-            if curve_glucose30 is None:
-                raise ValueError("curve에서 minute=30 glucose를 찾을 수 없습니다.")
-            if curve_glucose60 is None:
-                raise ValueError("curve에서 minute=60 glucose를 찾을 수 없습니다.")
-            if curve_glucose120 is None:
-                raise ValueError("curve에서 minute=120 glucose를 찾을 수 없습니다.")
+            if curve_delta30 is None:
+                raise ValueError("curve에서 minute=30 delta를 찾을 수 없습니다.")
+            if curve_delta60 is None:
+                raise ValueError("curve에서 minute=60 delta를 찾을 수 없습니다.")
+            if curve_delta120 is None:
+                raise ValueError("curve에서 minute=120 delta를 찾을 수 없습니다.")
 
-            pred_delta30.append(float(curve_glucose30 - baseline_glucose))
-            pred_delta60.append(float(curve_glucose60 - baseline_glucose))
-            pred_delta120.append(float(curve_glucose120 - baseline_glucose))
-            pred_peakDelta.append(float(result["peakGlucose"] - baseline_glucose))
+            pred_delta30.append(float(curve_delta30))
+            pred_delta60.append(float(curve_delta60))
+            pred_delta120.append(float(curve_delta120))
+            pred_peakDelta.append(float(result["peakDelta"]))
             peak_minutes.append(int(result["peakMinute"]))
             errors.append("")
         except Exception as e:
