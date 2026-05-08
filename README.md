@@ -177,15 +177,20 @@
 - [main.py](glucose_change_prediction/main.py): FastAPI 서버 진입점
 - [predict.py](glucose_change_prediction/predict.py): 모델 로딩 및 예측 로직
 - [schema.py](glucose_change_prediction/schema.py): 요청/응답 스키마
-- [service_data_utils.py](glucose_change_prediction/service_data_utils.py): 공통 서비스 데이터 전처리 유틸
 - [train_service_model.py](glucose_change_prediction/train_service_model.py): 앱 서비스용 최종 모델 학습
 - [evaluate_api.py](glucose_change_prediction/evaluate_api.py): API 응답 성능 검증
+- [service](glucose_change_prediction/service): 서비스 내부 유틸 패키지
+- [service/curve.py](glucose_change_prediction/service/curve.py): 곡선 후처리 및 응답 curve 구성 유틸
+- [service/data_utils.py](glucose_change_prediction/service/data_utils.py): 공통 서비스 데이터 전처리 유틸
+- [service/metrics.py](glucose_change_prediction/service/metrics.py): 공통 평가 지표 계산 유틸
+- [service/targets.py](glucose_change_prediction/service/targets.py): 서비스 타깃 및 평가 매핑 정의
 - [scripts/build_dataset_with_gender.py](glucose_change_prediction/scripts/build_dataset_with_gender.py): 최종 데이터셋 생성 스크립트
 - [models](glucose_change_prediction/models): 모델 및 평가 결과
 
 ## Installation
 
 ```bash
+cd glucose_change_prediction
 pip install -r requirements.txt
 ```
 
@@ -194,18 +199,21 @@ pip install -r requirements.txt
 API 서버 실행:
 
 ```bash
+cd glucose_change_prediction
 uvicorn main:app --reload
 ```
 
 모델 학습:
 
 ```bash
+cd glucose_change_prediction
 python train_service_model.py
 ```
 
 API 성능 검증:
 
 ```bash
+cd glucose_change_prediction
 python evaluate_api.py
 ```
 

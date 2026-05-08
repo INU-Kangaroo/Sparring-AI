@@ -1,10 +1,8 @@
-from typing import Literal
-
 from pydantic import BaseModel, Field, field_validator
 
 
-ALLOWED_MEAL_TYPES = {"breakfast", "lunch", "dinner"}
-ALLOWED_SEX = {"M", "F"}
+MEAL_TYPES = {"breakfast", "lunch", "dinner"}
+SEX_VALUES = {"M", "F"}
 
 
 class Meal(BaseModel):
@@ -13,19 +11,19 @@ class Meal(BaseModel):
     fat: float = Field(..., ge=0, le=1000)
     fiber: float = Field(..., ge=0, le=1000)
     kcal: float = Field(..., gt=0, le=5000)
-    mealType: Literal["breakfast", "lunch", "dinner"]
+    mealType: str
 
     @field_validator("mealType", mode="before")
     @classmethod
-    def normalize_meal_type(cls, value):
-        meal_type = str(value).strip().lower()
-        if meal_type not in ALLOWED_MEAL_TYPES:
+    def check_meal_type(cls, value):
+        value = str(value).strip().lower()
+        if value not in MEAL_TYPES:
             raise ValueError("mealType must be one of: breakfast, lunch, dinner")
-        return meal_type
+        return value
 
     @field_validator("fiber")
     @classmethod
-    def validate_fiber(cls, value, info):
+    def check_fiber(cls, value, info):
         carbs = info.data.get("carbs")
         if carbs is not None and value > carbs:
             raise ValueError("fiber cannot be greater than carbs")
@@ -34,16 +32,16 @@ class Meal(BaseModel):
 
 class PredictRequest(BaseModel):
     baselineGlucose: float = Field(..., ge=40, le=400)
-    sex: Literal["M", "F"]
+    sex: str
     meal: Meal
 
     @field_validator("sex", mode="before")
     @classmethod
-    def normalize_sex(cls, value):
-        sex = str(value).strip().upper()
-        if sex not in ALLOWED_SEX:
+    def check_sex(cls, value):
+        value = str(value).strip().upper()
+        if value not in SEX_VALUES:
             raise ValueError("sex must be 'M' or 'F'")
-        return sex
+        return value
 
 
 class CurvePoint(BaseModel):

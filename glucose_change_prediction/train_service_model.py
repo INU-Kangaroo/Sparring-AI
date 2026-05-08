@@ -1,13 +1,13 @@
 import json
 
-import numpy as np
 import pandas as pd
 import joblib
 from catboost import CatBoostRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from paths import DATASET_NAME, MODEL_METRICS_NAME, MODELS_DIR, MODEL_PREDICTIONS_NAME, PROCESSED_DIR
-from service_data_utils import ALLOWED_MEAL_TYPES, get_cat_feature_indices, prepare_service_frame, require_columns
+from service.data_utils import ALLOWED_MEAL_TYPES, get_cat_feature_indices, prepare_service_frame, require_columns
+from service.metrics import evaluate_minutes, evaluate_regression
+from service.targets import MODEL_TARGETS
 
 
 INPUT_CSV_PATH = PROCESSED_DIR / f"{DATASET_NAME}.csv"
@@ -19,7 +19,7 @@ META_OUTPUT = MODELS_DIR / "service_model_meta.json"
 METRICS_OUTPUT = MODELS_DIR / f"{MODEL_METRICS_NAME}.json"
 PRED_OUTPUT = PROCESSED_DIR / f"{MODEL_PREDICTIONS_NAME}.csv"
 
-TARGETS = ["delta_30", "delta_60", "delta_120", "peak_delta", "peak_minute"]
+TARGETS = MODEL_TARGETS
 FEATURES = [
     "meal_type",
     "total_kcal",
@@ -83,29 +83,100 @@ PARAMS_BY_TARGET = {
 }
 
 
-def rmse(y_true, y_pred) -> float:
-    return float(np.sqrt(mean_squared_error(y_true, y_pred)))
+def print_dataset_summary(train_df: pd.DataFrame, test_df: pd.DataFrame, full_df: pd.DataFrame) -> None:
+    print("Training final CatBoost models")
+    print(f"input csv: {INPUT_CSV_PATH}")
+    print(f"rows total : {len(full_df)}")
+    print(f"rows train : {len(train_df)}")
+    print(f"rows test  : {len(test_df)}")
+    print(f"subjects total : {full_df['subject'].nunique()}")
+    print(f"subjects train : {train_df['subject'].nunique()}")
+    print(f"subjects test  : {test_df['subject'].nunique()}")
+    print(f"test subject list: {TEST_SUBJECTS}")
 
 
-def evaluate(y_true, y_pred):
+def evaluate_target(target: str, y_test, pred) -> dict:
+    if target == "peak_minute":
+        return evaluate_minutes(y_test, pred)
+    return evaluate_regression(y_test, pred)
+
+
+def train_target_model(
+    target: str,
+    train_df: pd.DataFrame,
+    test_df: pd.DataFrame,
+    cat_features: list[int],
+):
+    local_train = train_df.dropna(subset=FEATURES + [target]).copy()
+    local_test = test_df.dropna(subset=FEATURES + [target]).copy()
+
+    X_train = local_train[FEATURES]
+    y_train = local_train[target]
+    X_test = local_test[FEATURES]
+    y_test = local_test[target]
+
+    params = {
+        "loss_function": "RMSE",
+        "random_seed": 42,
+        "verbose": False,
+        **PARAMS_BY_TARGET[target],
+    }
+
+    print(f"\n[target={target}]")
+    print(f"params: {PARAMS_BY_TARGET[target]}")
+
+    model = CatBoostRegressor(**params)
+    model.fit(X_train, y_train, cat_features=cat_features)
+
+    pred = model.predict(X_test)
+    result = evaluate_target(target, y_test, pred)
+
+    print(f"MAE : {result['mae']:.4f}")
+    print(f"RMSE: {result['rmse']:.4f}")
+    print(f"R2  : {result['r2']:.4f}")
+    if target == "peak_minute":
+        print(f"<=5m: {result['within_5min']:.4f}")
+        print(f"<=10m: {result['within_10min']:.4f}")
+        print(f"<=15m: {result['within_15min']:.4f}")
+
+    return model, result, local_test.index, y_test.values, pred
+
+
+def build_dataset_stats(train_df: pd.DataFrame, test_df: pd.DataFrame, full_df: pd.DataFrame) -> dict:
     return {
-        "mae": float(mean_absolute_error(y_true, y_pred)),
-        "rmse": rmse(y_true, y_pred),
-        "r2": float(r2_score(y_true, y_pred)),
+        "allowed_meal_types": sorted(ALLOWED_MEAL_TYPES),
+        "features": FEATURES,
+        "targets": TARGETS,
+        "rows_total": int(len(full_df)),
+        "rows_train": int(len(train_df)),
+        "rows_test": int(len(test_df)),
+        "subjects_total": int(full_df["subject"].nunique()),
+        "subjects_train": int(train_df["subject"].nunique()),
+        "subjects_test": int(test_df["subject"].nunique()),
+        "test_subject_list": TEST_SUBJECTS,
     }
 
 
-def evaluate_minutes(y_true, y_pred):
-    diff = np.abs(np.asarray(y_true, dtype=float) - np.asarray(y_pred, dtype=float))
-    return {
-        "mae": float(diff.mean()),
-        "rmse": float(np.sqrt(np.mean((np.asarray(y_true, dtype=float) - np.asarray(y_pred, dtype=float)) ** 2))),
-        "r2": float(r2_score(y_true, y_pred)),
-        "exact_match": float(np.mean(diff == 0)),
-        "within_5min": float(np.mean(diff <= 5)),
-        "within_10min": float(np.mean(diff <= 10)),
-        "within_15min": float(np.mean(diff <= 15)),
-    }
+def save_outputs(bundle: dict, pred_base: pd.DataFrame, metrics_payload: dict, meta: dict) -> None:
+    MODEL_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    PRED_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+
+    joblib.dump(bundle, MODEL_OUTPUT)
+    pred_base.to_csv(PRED_OUTPUT, index=False, encoding="utf-8-sig")
+
+    with open(META_OUTPUT, "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=2)
+
+    with open(METRICS_OUTPUT, "w", encoding="utf-8") as f:
+        json.dump(metrics_payload, f, ensure_ascii=False, indent=2)
+
+    print("\n=== 저장 완료 ===")
+    print(f"- {MODEL_OUTPUT}")
+    print(f"- {META_OUTPUT}")
+    print(f"- {METRICS_OUTPUT}")
+    print(f"- {PRED_OUTPUT}")
+
+
 def main():
     train_df = pd.read_csv(TRAIN_DATA_PATH).copy()
     test_df = pd.read_csv(TEST_DATA_PATH).copy()
@@ -128,16 +199,8 @@ def main():
         raise ValueError("train/test 데이터셋에 'subject' 컬럼이 필요합니다.")
 
     full_df = pd.concat([train_df, test_df], axis=0, ignore_index=True)
-
-    print("Training final CatBoost models")
-    print(f"input csv: {INPUT_CSV_PATH}")
-    print(f"rows total : {len(full_df)}")
-    print(f"rows train : {len(train_df)}")
-    print(f"rows test  : {len(test_df)}")
-    print(f"subjects total : {full_df['subject'].nunique()}")
-    print(f"subjects train : {train_df['subject'].nunique()}")
-    print(f"subjects test  : {test_df['subject'].nunique()}")
-    print(f"test subject list: {TEST_SUBJECTS}")
+    print_dataset_summary(train_df, test_df, full_df)
+    dataset_stats = build_dataset_stats(train_df, test_df, full_df)
 
     models = {}
     metrics = {}
@@ -146,105 +209,40 @@ def main():
     cat_features = get_cat_feature_indices(train_df, FEATURES)
 
     for target in TARGETS:
-        local_train = train_df.dropna(subset=FEATURES + [target]).copy()
-        local_test = test_df.dropna(subset=FEATURES + [target]).copy()
-
-        X_train = local_train[FEATURES]
-        y_train = local_train[target]
-
-        X_test = local_test[FEATURES]
-        y_test = local_test[target]
-
-        params = {
-            "loss_function": "RMSE",
-            "random_seed": 42,
-            "verbose": False,
-            **PARAMS_BY_TARGET[target],
-        }
-
-        print(f"\n[target={target}]")
-        print(f"params: {PARAMS_BY_TARGET[target]}")
-
-        model = CatBoostRegressor(**params)
-        model.fit(X_train, y_train, cat_features=cat_features)
+        model, result, test_index, true_values, pred_values = train_target_model(
+            target,
+            train_df,
+            test_df,
+            cat_features,
+        )
         models[target] = model
-
-        pred = model.predict(X_test)
-        result = evaluate_minutes(y_test, pred) if target == "peak_minute" else evaluate(y_test, pred)
         metrics[target] = result
-
-        print(f"MAE : {result['mae']:.4f}")
-        print(f"RMSE: {result['rmse']:.4f}")
-        print(f"R2  : {result['r2']:.4f}")
-        if target == "peak_minute":
-            print(f"<=5m: {result['within_5min']:.4f}")
-            print(f"<=10m: {result['within_10min']:.4f}")
-
-        pred_base.loc[local_test.index, f"{target}_true"] = y_test.values
-        pred_base.loc[local_test.index, f"{target}_pred"] = pred
-
-    MODEL_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    PRED_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+        pred_base.loc[test_index, f"{target}_true"] = true_values
+        pred_base.loc[test_index, f"{target}_pred"] = pred_values
 
     bundle = {
         "features": FEATURES,
         "targets": TARGETS,
         "models": models,
     }
-    joblib.dump(bundle, MODEL_OUTPUT)
-
-    pred_base.to_csv(PRED_OUTPUT, index=False, encoding="utf-8-sig")
-
     metrics_payload = {
         "dataset_name": DATASET_NAME,
         "input_csv": str(INPUT_CSV_PATH.name),
         "train_data_name": TRAIN_DATA_PATH.name,
         "test_data_name": TEST_DATA_PATH.name,
-        "allowed_meal_types": sorted(ALLOWED_MEAL_TYPES),
-        "features": FEATURES,
-        "targets": TARGETS,
-        "rows_total": int(len(full_df)),
-        "rows_train": int(len(train_df)),
-        "rows_test": int(len(test_df)),
-        "subjects_total": int(full_df["subject"].nunique()),
-        "subjects_train": int(train_df["subject"].nunique()),
-        "subjects_test": int(test_df["subject"].nunique()),
-        "test_subject_list": TEST_SUBJECTS,
+        **dataset_stats,
         "results": metrics,
     }
-
     meta = {
         "input_csv": str(INPUT_CSV_PATH),
         "train_data_path": str(TRAIN_DATA_PATH),
         "test_data_path": str(TEST_DATA_PATH),
-        "allowed_meal_types": sorted(ALLOWED_MEAL_TYPES),
         "features": FEATURES,
         "targets": TARGETS,
-        "rows_total": int(len(full_df)),
-        "rows_train": int(len(train_df)),
-        "rows_test": int(len(test_df)),
-        "subjects_total": int(full_df["subject"].nunique()),
-        "subjects_train": int(train_df["subject"].nunique()),
-        "subjects_test": int(test_df["subject"].nunique()),
-        "test_subject_list": TEST_SUBJECTS,
         "params_by_target": PARAMS_BY_TARGET,
         "test_metrics": metrics,
-        "metrics_output": str(METRICS_OUTPUT),
-        "model_output": str(MODEL_OUTPUT),
-        "prediction_output": str(PRED_OUTPUT),
     }
-
-    with open(META_OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=2)
-
-    with open(METRICS_OUTPUT, "w", encoding="utf-8") as f:
-        json.dump(metrics_payload, f, ensure_ascii=False, indent=2)
-
-    print("\n=== 저장 완료 ===")
-    print(f"- {MODEL_OUTPUT}")
-    print(f"- {META_OUTPUT}")
-    print(f"- {METRICS_OUTPUT}")
-    print(f"- {PRED_OUTPUT}")
+    save_outputs(bundle, pred_base, metrics_payload, meta)
 
 
 if __name__ == "__main__":
