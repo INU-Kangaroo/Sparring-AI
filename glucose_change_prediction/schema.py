@@ -1,8 +1,13 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field, field_validator
-from typing import Literal, List
 
 
-class MealInput(BaseModel):
+ALLOWED_MEAL_TYPES = {"breakfast", "lunch", "dinner"}
+ALLOWED_SEX = {"M", "F"}
+
+
+class Meal(BaseModel):
     carbs: float = Field(..., ge=0, le=1000)
     protein: float = Field(..., ge=0, le=1000)
     fat: float = Field(..., ge=0, le=1000)
@@ -12,34 +17,33 @@ class MealInput(BaseModel):
 
     @field_validator("mealType", mode="before")
     @classmethod
-    def normalize_meal_type(cls, v):
-        s = str(v).strip().lower()
-        allowed = {"breakfast", "lunch", "dinner"}
-        if s not in allowed:
+    def normalize_meal_type(cls, value):
+        meal_type = str(value).strip().lower()
+        if meal_type not in ALLOWED_MEAL_TYPES:
             raise ValueError("mealType must be one of: breakfast, lunch, dinner")
-        return s
+        return meal_type
 
     @field_validator("fiber")
     @classmethod
-    def validate_fiber_vs_carbs(cls, v, info):
+    def validate_fiber(cls, value, info):
         carbs = info.data.get("carbs")
-        if carbs is not None and v > carbs:
+        if carbs is not None and value > carbs:
             raise ValueError("fiber cannot be greater than carbs")
-        return v
+        return value
 
 
-class PredictMealResponseRequest(BaseModel):
+class PredictRequest(BaseModel):
     baselineGlucose: float = Field(..., ge=40, le=400)
     sex: Literal["M", "F"]
-    meal: MealInput
+    meal: Meal
 
     @field_validator("sex", mode="before")
     @classmethod
-    def normalize_sex(cls, v):
-        s = str(v).strip().upper()
-        if s not in {"M", "F"}:
+    def normalize_sex(cls, value):
+        sex = str(value).strip().upper()
+        if sex not in ALLOWED_SEX:
             raise ValueError("sex must be 'M' or 'F'")
-        return s
+        return sex
 
 
 class CurvePoint(BaseModel):
@@ -47,9 +51,9 @@ class CurvePoint(BaseModel):
     delta: float
 
 
-class PredictMealResponseResponse(BaseModel):
+class PredictResponse(BaseModel):
     delta30: float
     delta60: float
     peakDelta: float
     peakMinute: int
-    curve: List[CurvePoint]
+    curve: list[CurvePoint]

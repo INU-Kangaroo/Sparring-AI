@@ -1,28 +1,25 @@
 import json
 import os
-from pathlib import Path
 
 import pandas as pd
 import requests
 from dotenv import load_dotenv
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
+from paths import API_PREDICTIONS_NAME, DATASET_NAME, MODELS_DIR, PROCESSED_DIR
+from service_data_utils import ALLOWED_MEAL_TYPES, prepare_service_frame
 
-BASE_DIR = Path(__file__).resolve().parent
 load_dotenv()
 
 BASE_URL = os.environ["GLUCOSE_API_BASE_URL"]
 PREDICT_PATH = "/predict-glucose"
 
-TEST_CSV = BASE_DIR / "data" / "processed" / "last_final_no_activity_plus_clean_with_Gender_test.csv"
+TEST_CSV = PROCESSED_DIR / f"{DATASET_NAME}_test.csv"
 
-OUTPUT_PRED_CSV = BASE_DIR / "data" / "processed" / "test_server_api_catboost_service_shape_predictions.csv"
-OUTPUT_METRICS_JSON = BASE_DIR / "models" / "test_server_api_catboost_service_shape_metrics.json"
+OUTPUT_PRED_CSV = PROCESSED_DIR / f"{API_PREDICTIONS_NAME}.csv"
+OUTPUT_METRICS_JSON = MODELS_DIR / "api_evaluation_metrics.json"
 
 REQUEST_TIMEOUT = 10
-ALLOWED_MEAL_TYPES = {"breakfast", "lunch", "dinner"}
-
-
 def evaluate_regression(y_true, y_pred):
     mae = mean_absolute_error(y_true, y_pred)
     rmse = mean_squared_error(y_true, y_pred) ** 0.5
@@ -34,43 +31,16 @@ def evaluate_regression(y_true, y_pred):
     }
 
 
-def normalize_sex_column(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-
-    if "sex" not in df.columns and "Gender" in df.columns:
-        df["sex"] = df["Gender"]
-
-    if "sex" not in df.columns:
-        raise ValueError("테스트 CSV에 'sex' 또는 'Gender' 컬럼이 없습니다.")
-
-    df["sex"] = (
-        df["sex"]
-        .astype(str)
-        .str.strip()
-        .str.upper()
-        .replace({
-            "MALE": "M",
-            "FEMALE": "F",
-            "남": "M",
-            "여": "F",
-        })
-    )
-
-    df = df[df["sex"].isin(["M", "F"])].copy()
-    return df
-
-
-def normalize_meal_type_column(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.copy()
-
-    if "meal_type" not in df.columns:
-        raise ValueError("테스트 CSV에 'meal_type' 컬럼이 없습니다.")
-
-    df["meal_type"] = df["meal_type"].astype(str).str.strip().str.lower()
-    df = df[df["meal_type"].isin(ALLOWED_MEAL_TYPES)].copy()
-    return df
-
-
+def evaluate_minutes(y_true, y_pred):
+    diff = (y_true - y_pred).abs()
+    return {
+        "mae": float(diff.mean()),
+        "rmse": float((mean_squared_error(y_true, y_pred) ** 0.5)),
+        "exact_match": float((diff == 0).mean()),
+        "within_5min": float((diff <= 5).mean()),
+        "within_10min": float((diff <= 10).mean()),
+        "within_15min": float((diff <= 15).mean()),
+    }
 def row_to_request_payload(row: pd.Series) -> dict:
     sex = str(row["sex"]).strip().upper()
     if sex not in {"M", "F"}:
@@ -118,8 +88,11 @@ def extract_curve_delta120(curve):
 
 def main():
     test_df = pd.read_csv(TEST_CSV).copy()
-    test_df = normalize_sex_column(test_df)
-    test_df = normalize_meal_type_column(test_df)
+    test_df = prepare_service_frame(
+        test_df,
+        sex_missing_message="테스트 CSV에 'sex' 또는 'Gender' 컬럼이 없습니다.",
+        meal_missing_message="테스트 CSV에 'meal_type' 컬럼이 없습니다.",
+    )
 
     required_input_cols = [
         "baseline_glucose",
@@ -136,11 +109,12 @@ def main():
         "delta_60",
         "delta_120",
         "peak_delta",
+        "peak_minute",
     ]
 
     test_df = test_df.dropna(subset=required_input_cols + required_target_cols).copy()
 
-    print("=== 서버 API 실측 평가 시작 ===")
+    print("Running API evaluation")
     print("test rows:", len(test_df))
     print("test subjects:", test_df["subject"].nunique() if "subject" in test_df.columns else "N/A")
 
@@ -188,6 +162,7 @@ def main():
         & out_df["pred_delta60"].notna()
         & out_df["pred_delta120"].notna()
         & out_df["pred_peakDelta"].notna()
+        & out_df["pred_peakMinute"].notna()
     ].copy()
 
     print("\nvalid rows:", len(valid_df))
@@ -197,30 +172,35 @@ def main():
         raise RuntimeError("서버 응답이 모두 실패했습니다. 모델 경로와 서버 로그를 먼저 확인하세요.")
 
     metrics = {
-        "server_url": BASE_URL + PREDICT_PATH,
+        "server_base_env": "GLUCOSE_API_BASE_URL",
+        "predict_path": PREDICT_PATH,
         "allowed_meal_types": sorted(ALLOWED_MEAL_TYPES),
         "test_rows_total": int(len(out_df)),
         "test_rows_valid": int(len(valid_df)),
         "test_subjects": int(valid_df["subject"].nunique()) if "subject" in valid_df.columns else None,
         "results": {},
     }
-
     target_map = {
-        "delta30": ("delta_30", "pred_delta30"),
-        "delta60": ("delta_60", "pred_delta60"),
-        "delta120": ("delta_120", "pred_delta120"),
-        "peakDelta": ("peak_delta", "pred_peakDelta"),
+        "delta30": ("delta_30", "pred_delta30", evaluate_regression),
+        "delta60": ("delta_60", "pred_delta60", evaluate_regression),
+        "delta120": ("delta_120", "pred_delta120", evaluate_regression),
+        "peakDelta": ("peak_delta", "pred_peakDelta", evaluate_regression),
+        "peakMinute": ("peak_minute", "pred_peakMinute", evaluate_minutes),
     }
 
     print("\n=== 서버 응답 기준 성능 ===")
-    for name, (true_col, pred_col) in target_map.items():
-        result = evaluate_regression(valid_df[true_col], valid_df[pred_col])
+    for name, (true_col, pred_col, evaluator) in target_map.items():
+        result = evaluator(valid_df[true_col], valid_df[pred_col])
         metrics["results"][name] = result
 
         print(f"\n[{name}]")
         print(f"MAE : {result['mae']:.4f}")
         print(f"RMSE: {result['rmse']:.4f}")
-        print(f"R2  : {result['r2']:.4f}")
+        if "r2" in result:
+            print(f"R2  : {result['r2']:.4f}")
+        else:
+            print(f"<=5m: {result['within_5min']:.4f}")
+            print(f"<=10m: {result['within_10min']:.4f}")
 
     OUTPUT_PRED_CSV.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_METRICS_JSON.parent.mkdir(parents=True, exist_ok=True)

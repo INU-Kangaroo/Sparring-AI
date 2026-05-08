@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from predict import predict_meal_response
-from schema import PredictMealResponseRequest, PredictMealResponseResponse
+from predict import load_model_bundle, predict_meal_response
+from schema import PredictRequest, PredictResponse
 
 
 app = FastAPI(
@@ -25,15 +25,16 @@ def health():
     return {"status": "ok"}
 
 
-@app.post("/predict-glucose", response_model=PredictMealResponseResponse)
-def predict_glucose_endpoint(req: PredictMealResponseRequest):
+@app.post("/predict-glucose", response_model=PredictResponse)
+def predict_glucose(request: PredictRequest):
     try:
-        req_dict = req.model_dump()
-        result = predict_meal_response(req_dict)
-        return result
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=500, detail=f"Model file error: {str(e)}")
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        load_model_bundle()
+        return predict_meal_response(request.model_dump())
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=500, detail=f"Model file error: {exc}") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {exc}") from exc

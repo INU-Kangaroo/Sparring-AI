@@ -1,35 +1,35 @@
+import numpy as np
+import math
 from functools import lru_cache
-from pathlib import Path
-from typing import Dict, Any
+from typing import Any
 
 import joblib
 import pandas as pd
-import math
+
+from paths import MODELS_DIR
 
 
-BASE_DIR = Path(__file__).resolve().parent
-MODEL_PATH = BASE_DIR / "models" / "final_catboost_service_shape_with_sex.joblib"
+MODEL_PATH = MODELS_DIR / "service_model.joblib"
+REQUIRED_BUNDLE_KEYS = {"features", "targets", "models"}
+ALLOWED_MEAL_TYPES = {"breakfast", "lunch", "dinner"}
 
 
 @lru_cache(maxsize=1)
-def load_model_bundle() -> Dict[str, Any]:
+def load_model_bundle() -> dict[str, Any]:
     if not MODEL_PATH.exists():
         raise FileNotFoundError(f"Model not found: {MODEL_PATH}")
 
     bundle = joblib.load(str(MODEL_PATH))
-
-    required_keys = {"features", "targets", "models"}
-    missing = required_keys - set(bundle.keys())
+    missing = REQUIRED_BUNDLE_KEYS - set(bundle.keys())
     if missing:
         raise ValueError(f"Model bundle missing keys: {sorted(missing)}")
 
     return bundle
 
 
-def _validate_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+def parse_payload(payload: dict[str, Any]) -> dict[str, Any]:
     baseline_glucose = float(payload["baselineGlucose"])
     sex = str(payload["sex"]).strip().upper()
-
     if sex not in {"M", "F"}:
         raise ValueError("sex must be 'M' or 'F'")
 
@@ -41,20 +41,16 @@ def _validate_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
     total_kcal = float(meal["kcal"])
     meal_type = str(meal["mealType"]).strip().lower()
 
-    allowed_meal_types = {"breakfast", "lunch", "dinner"}
-    if meal_type not in allowed_meal_types:
+    if meal_type not in ALLOWED_MEAL_TYPES:
         raise ValueError("mealType must be one of: breakfast, lunch, dinner")
-
     if total_fiber > total_carbs:
         raise ValueError("fiber cannot be greater than carbs")
-
-    effective_carbs = max(total_carbs - total_fiber, 0.0)
 
     return {
         "meal_type": meal_type,
         "total_kcal": total_kcal,
         "total_carbs": total_carbs,
-        "effective_carbs": effective_carbs,
+        "effective_carbs": max(total_carbs - total_fiber, 0.0),
         "total_protein": total_protein,
         "total_fat": total_fat,
         "total_fiber": total_fiber,
@@ -134,7 +130,6 @@ def _estimate_peak_minute(
         90: abs(score - 1.30),
         105: abs(score - 2.10),
     }
-
     return min(candidate_scores, key=candidate_scores.get)
 
 
@@ -147,9 +142,9 @@ def _align_peak_with_curve(
 ) -> float:
     if peak_minute == 30:
         return delta30
-    elif peak_minute == 60:
+    if peak_minute == 60:
         return delta60
-    elif peak_minute == 120:
+    if peak_minute == 120:
         return delta120
 
     if peak_minute == 75:
@@ -179,13 +174,10 @@ def _finalize_peak_minute(
 ) -> int:
     if peak_minute > 60 and abs(peak_delta - delta60) <= 0.5:
         return 60
-
     if peak_minute > 30 and abs(peak_delta - delta30) <= 0.5:
         return 30
-
     if abs(peak_delta - delta120) <= 0.5:
         return 120
-
     return peak_minute
 
 
@@ -201,24 +193,15 @@ def _apply_postprocess_rules(
     peak_delta: float,
 ):
     peak_delta = min(peak_delta, delta60 + 12.0)
-    peak_cap = _smooth_peak_cap(carbs)
-    peak_delta = min(peak_delta, peak_cap)
+    peak_delta = min(peak_delta, _smooth_peak_cap(carbs))
 
-    low_carb_factor = _smooth_reduction(
-        max(30.0 - carbs, 0.0),
-        scale=12.0,
-        max_reduction=0.12,
-    )
+    low_carb_factor = _smooth_reduction(max(30.0 - carbs, 0.0), scale=12.0, max_reduction=0.12)
     delta30 *= low_carb_factor
     delta60 *= low_carb_factor
     delta120 *= low_carb_factor
     peak_delta *= low_carb_factor
 
-    carb_boost = _smooth_increase(
-        max(carbs - 25.0, 0.0),
-        scale=35.0,
-        max_increase=0.12,
-    )
+    carb_boost = _smooth_increase(max(carbs - 25.0, 0.0), scale=35.0, max_increase=0.12)
     delta30 *= carb_boost
     delta60 *= carb_boost
     delta120 *= carb_boost
@@ -243,11 +226,9 @@ def _apply_postprocess_rules(
         delta30 *= 0.95
         if delta60 > 0:
             delta30 = min(delta30, delta60 * 0.96)
-
     elif meal_type == "lunch":
         delta60 *= 1.03
         peak_delta *= 1.02
-
     elif meal_type == "dinner":
         delta60 *= 1.02
         delta120 *= 0.95
@@ -273,102 +254,60 @@ def _apply_postprocess_rules(
     return delta30, delta60, delta120, peak_delta
 
 
-def _build_curve(
+def build_curve(
     delta30: float,
     delta60: float,
     delta120: float,
     peak_delta: float,
     peak_minute: int,
-):
-    points = {
-        0: 0.0,
-        30: delta30,
-        60: delta60,
-        120: delta120,
-    }
-
+) -> list[dict[str, float | int]]:
+    points = {0: 0.0, 30: delta30, 60: delta60, 120: delta120}
     if peak_minute not in points:
         points[peak_minute] = peak_delta
     else:
         points[peak_minute] = max(points[peak_minute], peak_delta)
 
-    curve = [
+    return [
         {"minute": minute, "delta": round(points[minute], 1)}
-        for minute in sorted(points.keys())
+        for minute in sorted(points)
     ]
-    return curve
 
 
-def predict_meal_response(payload: Dict[str, Any]) -> Dict[str, Any]:
+def predict_meal_response(payload: dict[str, Any]) -> dict[str, Any]:
     bundle = load_model_bundle()
+    row = parse_payload(payload)
     features = bundle["features"]
     models = bundle["models"]
+    frame = pd.DataFrame([row], columns=features)
 
-    row = _validate_payload(payload)
-    X = pd.DataFrame([row], columns=features)
+    delta30 = float(models["delta_30"].predict(frame)[0])
+    delta60 = float(models["delta_60"].predict(frame)[0])
+    delta120 = float(models["delta_120"].predict(frame)[0])
+    peak_delta = float(models["peak_delta"].predict(frame)[0])
+    peak_minute = int(np.clip(np.rint(models["peak_minute"].predict(frame)[0]), 1, 120))
 
-    raw_delta30 = float(models["delta_30"].predict(X)[0])
-    raw_delta60 = float(models["delta_60"].predict(X)[0])
-    raw_delta120 = float(models["delta_120"].predict(X)[0])
-    raw_peak_delta = float(models["peak_delta"].predict(X)[0])
-
-    delta30, delta60, delta120, peak_delta = _apply_postprocess_rules(
-        meal_type=row["meal_type"],
-        carbs=row["total_carbs"],
-        fiber=row["total_fiber"],
-        protein=row["total_protein"],
-        fat=row["total_fat"],
-        delta30=raw_delta30,
-        delta60=raw_delta60,
-        delta120=raw_delta120,
-        peak_delta=raw_peak_delta,
-    )
-
-    peak_minute = _estimate_peak_minute(
-        meal_type=row["meal_type"],
-        carbs=row["total_carbs"],
-        protein=row["total_protein"],
-        fat=row["total_fat"],
-        fiber=row["total_fiber"],
-        delta30=delta30,
-        delta60=delta60,
-        delta120=delta120,
-        peak_delta=peak_delta,
-    )
-
-    peak_delta = _align_peak_with_curve(
-        peak_minute=peak_minute,
-        delta30=delta30,
-        delta60=delta60,
-        delta120=delta120,
-        peak_delta=peak_delta,
-    )
-
-    peak_minute = _finalize_peak_minute(
-        peak_minute=peak_minute,
-        delta30=delta30,
-        delta60=delta60,
-        delta120=delta120,
-        peak_delta=peak_delta,
-    )
+    if peak_minute == 30:
+        peak_delta = max(peak_delta, delta30)
+    elif peak_minute == 60:
+        peak_delta = max(peak_delta, delta60)
+    elif peak_minute == 120:
+        peak_delta = max(peak_delta, delta120)
 
     delta30 = round(delta30, 1)
     delta60 = round(delta60, 1)
     delta120 = round(delta120, 1)
     peak_delta = round(peak_delta, 1)
 
-    curve = _build_curve(
-        delta30=delta30,
-        delta60=delta60,
-        delta120=delta120,
-        peak_delta=peak_delta,
-        peak_minute=peak_minute,
-    )
-
     return {
         "delta30": delta30,
         "delta60": delta60,
         "peakDelta": peak_delta,
         "peakMinute": peak_minute,
-        "curve": curve,
+        "curve": build_curve(
+            delta30=delta30,
+            delta60=delta60,
+            delta120=delta120,
+            peak_delta=peak_delta,
+            peak_minute=peak_minute,
+        ),
     }

@@ -1,0 +1,207 @@
+{
+  "dataset_name": "meal_glucose_with_gender",
+  "train_rows_after_filter": 953,
+  "test_rows_after_filter": 252,
+  "baseline_features": [
+    "meal_type",
+    "total_kcal",
+    "total_carbs",
+    "effective_carbs",
+    "total_protein",
+    "total_fat",
+    "total_fiber",
+    "baseline_glucose",
+    "sex"
+  ],
+  "experiment_features": [
+    "meal_type",
+    "total_kcal",
+    "total_carbs",
+    "effective_carbs",
+    "total_protein",
+    "total_fat",
+    "total_fiber",
+    "baseline_glucose",
+    "sex",
+    "hour"
+  ],
+  "peak_bins": [
+    30,
+    45,
+    60,
+    75,
+    90,
+    105,
+    120
+  ],
+  "changes_applied": [
+    "hour feature added",
+    "peak_minute modeled as 15-minute bin classification",
+    "peak_minute values at 1 and 120 excluded from peak-time training and flagged in evaluation"
+  ],
+  "baseline": {
+    "regression_targets": {
+      "delta_30": {
+        "mae": 20.686618690887844,
+        "rmse": 27.44723866721895,
+        "r2": 0.21117530695877196
+      },
+      "delta_60": {
+        "mae": 34.96199281525053,
+        "rmse": 44.400565918013825,
+        "r2": 0.16401190469018723
+      },
+      "delta_120": {
+        "mae": 27.220188983927585,
+        "rmse": 38.232777495393016,
+        "r2": 0.38822787607030085
+      },
+      "peak_delta": {
+        "mae": 25.617088467599224,
+        "rmse": 35.007625893398945,
+        "r2": 0.3917015833422146
+      }
+    },
+    "peak_minute": {
+      "mae": 29.164376573916062,
+      "rmse": 34.54080110356908,
+      "r2": 0.012097896591604096,
+      "exact_match": 0.0,
+      "within_5min": 0.0992063492063492,
+      "within_10min": 0.20634920634920634,
+      "within_15min": 0.2857142857142857
+    }
+  },
+  "peak_minute_ablations": {
+    "hour_added_regression": {
+      "overall_raw_minutes": {
+        "mae": 29.09257665620644,
+        "rmse": 34.62584627536454,
+        "r2": 0.007227150549811268,
+        "exact_match": 0.0,
+        "within_5min": 0.11507936507936507,
+        "within_10min": 0.2222222222222222,
+        "within_15min": 0.2976190476190476
+      },
+      "uncensored_raw_minutes": {
+        "mae": 23.60201275763824,
+        "rmse": 28.556119898361462,
+        "r2": -0.07373043974884985,
+        "exact_match": 0.0,
+        "within_5min": 0.14795918367346939,
+        "within_10min": 0.28061224489795916,
+        "within_15min": 0.37244897959183676
+      },
+      "train_rows": 953,
+      "test_rows_all": 252,
+      "test_rows_uncensored": 196,
+      "exclude_censored_from_train": false
+    },
+    "uncensored_train_regression": {
+      "overall_raw_minutes": {
+        "mae": 30.526928722846936,
+        "rmse": 36.17312010687419,
+        "r2": -0.08348034917002622,
+        "exact_match": 0.0,
+        "within_5min": 0.0873015873015873,
+        "within_10min": 0.1746031746031746,
+        "within_15min": 0.27380952380952384
+      },
+      "uncensored_raw_minutes": {
+        "mae": 24.272000866802028,
+        "rmse": 29.326451588749524,
+        "r2": -0.132441842003445,
+        "exact_match": 0.0,
+        "within_5min": 0.11224489795918367,
+        "within_10min": 0.22448979591836735,
+        "within_15min": 0.3520408163265306
+      },
+      "train_rows": 844,
+      "test_rows_all": 252,
+      "test_rows_uncensored": 196,
+      "exclude_censored_from_train": true
+    },
+    "hour_added_uncensored_train_regression": {
+      "overall_raw_minutes": {
+        "mae": 30.368317846923485,
+        "rmse": 36.04336051043875,
+        "r2": -0.07572100699098505,
+        "exact_match": 0.0,
+        "within_5min": 0.10317460317460317,
+        "within_10min": 0.19047619047619047,
+        "within_15min": 0.2976190476190476
+      },
+      "uncensored_raw_minutes": {
+        "mae": 24.09565820936476,
+        "rmse": 29.22380306639701,
+        "r2": -0.12452816424317148,
+        "exact_match": 0.0,
+        "within_5min": 0.1326530612244898,
+        "within_10min": 0.24489795918367346,
+        "within_15min": 0.3826530612244898
+      },
+      "train_rows": 844,
+      "test_rows_all": 252,
+      "test_rows_uncensored": 196,
+      "exclude_censored_from_train": true
+    }
+  },
+  "experiment": {
+    "regression_targets": {
+      "delta_30": {
+        "mae": 20.472862946210725,
+        "rmse": 27.29449614158369,
+        "r2": 0.21993041890619358
+      },
+      "delta_60": {
+        "mae": 34.73431710391743,
+        "rmse": 44.29689162590873,
+        "r2": 0.16791137243010812
+      },
+      "delta_120": {
+        "mae": 27.636435172225482,
+        "rmse": 38.461396070017415,
+        "r2": 0.3808896367702981
+      },
+      "peak_delta": {
+        "mae": 25.635011259544516,
+        "rmse": 35.10042240720876,
+        "r2": 0.38847241336848815
+      }
+    },
+    "peak_minute": {
+      "overall_raw_minutes": {
+        "mae": 34.62301587301587,
+        "rmse": 41.80714414531686,
+        "r2": -0.4472718063795136,
+        "exact_match": 0.003968253968253968,
+        "within_5min": 0.08333333333333333,
+        "within_10min": 0.17063492063492064,
+        "within_15min": 0.2777777777777778
+      },
+      "uncensored_raw_minutes": {
+        "mae": 29.81122448979592,
+        "rmse": 36.42836134393203,
+        "r2": -0.7473348685134162,
+        "exact_match": 0.00510204081632653,
+        "within_5min": 0.10714285714285714,
+        "within_10min": 0.2193877551020408,
+        "within_15min": 0.336734693877551
+      },
+      "uncensored_binned_truth": {
+        "mae": 29.081632653061224,
+        "rmse": 36.333910623885366,
+        "r2": -0.8700583252441283,
+        "exact_match": 0.1836734693877551,
+        "within_5min": 0.1836734693877551,
+        "within_10min": 0.1836734693877551,
+        "within_15min": 0.4387755102040816
+      },
+      "train_rows_uncensored": 844,
+      "test_rows_all": 252,
+      "test_rows_uncensored": 196,
+      "censored_train_rows_removed": 109,
+      "censored_test_rows_flagged": 56
+    }
+  }
+}

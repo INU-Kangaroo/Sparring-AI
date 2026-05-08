@@ -1,7 +1,7 @@
 {
-  "input_csv": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender.csv",
-  "train_data_path": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender_train.csv",
-  "test_data_path": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/last_final_no_activity_plus_clean_with_Gender_test.csv",
+  "input_csv": "/home/Capstone/glucose_change_prediction/data/processed/meal_glucose_with_gender.csv",
+  "train_data_path": "/home/Capstone/glucose_change_prediction/data/processed/meal_glucose_with_gender_train.csv",
+  "test_data_path": "/home/Capstone/glucose_change_prediction/data/processed/meal_glucose_with_gender_test.csv",
   "allowed_meal_types": [
     "breakfast",
     "dinner",
@@ -22,7 +22,8 @@
     "delta_30",
     "delta_60",
     "delta_120",
-    "peak_delta"
+    "peak_delta",
+    "peak_minute"
   ],
   "rows_total": 1205,
   "rows_train": 953,
@@ -69,6 +70,13 @@
       "learning_rate": 0.03,
       "l2_leaf_reg": 5,
       "subsample": 0.9
+    },
+    "peak_minute": {
+      "iterations": 400,
+      "depth": 6,
+      "learning_rate": 0.03,
+      "l2_leaf_reg": 5,
+      "subsample": 0.9
     }
   },
   "test_metrics": {
@@ -91,8 +99,18 @@
       "mae": 25.617088467599224,
       "rmse": 35.007625893398945,
       "r2": 0.3917015833422146
+    },
+    "peak_minute": {
+      "mae": 29.164376573916062,
+      "rmse": 34.54080110356908,
+      "r2": 0.012097896591604096,
+      "exact_match": 0.0,
+      "within_5min": 0.0992063492063492,
+      "within_10min": 0.20634920634920634,
+      "within_15min": 0.2857142857142857
     }
   },
-  "model_output": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/models/final_catboost_service_shape_with_sex.joblib",
-  "prediction_output": "/home/Capstone/ai/ai_glucose/glucose_change_prediction/data/processed/final_catboost_service_shape_with_sex_predictions.csv"
+  "metrics_output": "/home/Capstone/glucose_change_prediction/models/service_model_metrics.json",
+  "model_output": "/home/Capstone/glucose_change_prediction/models/service_model.joblib",
+  "prediction_output": "/home/Capstone/glucose_change_prediction/data/processed/service_model_predictions.csv"
 }

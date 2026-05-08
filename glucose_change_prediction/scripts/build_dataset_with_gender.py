@@ -1,9 +1,14 @@
 from pathlib import Path
 import argparse
 import json
+import sys
 
 import pandas as pd
 import numpy as np
+
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+from paths import BASE_DATASET_NAME, BIO_CSV, CGMACROS_DIR, DATASET_NAME, PROCESSED_DIR
 
 
 TEST_SUBJECTS = [
@@ -18,22 +23,19 @@ TEST_SUBJECTS = [
     "CGMacros-048",
 ]
 
-PROJECT_DIR = Path(__file__).resolve().parent.parent
-AI_GLUCOSE_DIR = PROJECT_DIR.parent
-CGMACROS_DIR = AI_GLUCOSE_DIR / "CGMacros"
-PROCESSED_DIR = PROJECT_DIR / "data" / "processed"
+INTERMEDIATE_CLEAN_CSV = PROCESSED_DIR / f"{BASE_DATASET_NAME}.csv"
+RAW_CSV = PROCESSED_DIR / f"{BASE_DATASET_NAME}_raw.csv"
+REMOVED_CSV = PROCESSED_DIR / f"{BASE_DATASET_NAME}_removed.csv"
+SUBJECT_SUMMARY_CSV = PROCESSED_DIR / f"{BASE_DATASET_NAME}_subject_summary.csv"
 
-INTERMEDIATE_CLEAN_CSV = PROCESSED_DIR / "final_no_activity_plus_clean.csv"
-BIO_CSV = CGMACROS_DIR / "bio.csv"
-
-FINAL_CSV = PROCESSED_DIR / "last_final_no_activity_plus_clean_with_Gender.csv"
-TRAIN_CSV = PROCESSED_DIR / "last_final_no_activity_plus_clean_with_Gender_train.csv"
-TEST_CSV = PROCESSED_DIR / "last_final_no_activity_plus_clean_with_Gender_test.csv"
-SPLIT_SUMMARY_JSON = PROCESSED_DIR / "last_final_no_activity_plus_clean_with_Gender_split_summary.json"
+FINAL_CSV = PROCESSED_DIR / f"{DATASET_NAME}.csv"
+TRAIN_CSV = PROCESSED_DIR / f"{DATASET_NAME}_train.csv"
+TEST_CSV = PROCESSED_DIR / f"{DATASET_NAME}_test.csv"
+SPLIT_SUMMARY_JSON = PROCESSED_DIR / f"{DATASET_NAME}_split_summary.json"
 INTERMEDIATE_FILES = [
-    PROCESSED_DIR / "final_no_activity_plus_raw.csv",
-    PROCESSED_DIR / "final_no_activity_plus_removed.csv",
-    PROCESSED_DIR / "final_no_activity_plus_subject_summary.csv",
+    RAW_CSV,
+    REMOVED_CSV,
+    SUBJECT_SUMMARY_CSV,
     SPLIT_SUMMARY_JSON,
 ]
 
@@ -78,14 +80,14 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def build_glucose_column(df: pd.DataFrame) -> pd.DataFrame:
+def add_glucose_column(df: pd.DataFrame) -> pd.DataFrame:
     df["glucose"] = pd.to_numeric(df["Dexcom GL"], errors="coerce").combine_first(
         pd.to_numeric(df["Libre GL"], errors="coerce")
     )
     return df
 
 
-def normalize_meal_type(x):
+def normalize_meal_label(x):
     if pd.isna(x):
         return None
     s = str(x).strip().lower()
@@ -116,7 +118,7 @@ def extract_meal_rows(df: pd.DataFrame) -> pd.DataFrame:
     )
 
     meals = df.loc[meal_mask].copy()
-    meals["meal_type"] = meals["Meal Type"].apply(normalize_meal_type)
+    meals["meal_type"] = meals["Meal Type"].apply(normalize_meal_label)
     meals["Timestamp"] = pd.to_datetime(meals["Timestamp"], errors="coerce")
     meals = meals.dropna(subset=["Timestamp", "meal_type"])
 
@@ -245,7 +247,10 @@ def build_training_rows(subject_df: pd.DataFrame, meal_df: pd.DataFrame) -> pd.D
         if post120.dropna(subset=["glucose"]).empty:
             continue
 
-        peak_glucose = float(post120["glucose"].max())
+        peak_idx = post120["glucose"].idxmax()
+        peak_row = post120.loc[peak_idx]
+        peak_glucose = float(peak_row["glucose"])
+        peak_minute = int(round((peak_row["Timestamp"] - t).total_seconds() / 60.0))
 
         if pd.isna(g30) or pd.isna(g60) or pd.isna(g120):
             continue
@@ -269,6 +274,7 @@ def build_training_rows(subject_df: pd.DataFrame, meal_df: pd.DataFrame) -> pd.D
             "delta_60": float(g60 - baseline),
             "delta_120": float(g120 - baseline),
             "peak_delta": float(peak_glucose - baseline),
+            "peak_minute": peak_minute,
         })
 
     return pd.DataFrame(rows)
@@ -293,6 +299,7 @@ def clean_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         "delta_60",
         "delta_120",
         "peak_delta",
+        "peak_minute",
     ]
     df = df.dropna(subset=required_cols).copy()
 
@@ -314,6 +321,7 @@ def clean_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
         & kcal_ratio.between(0.6, 1.8)
         & df["baseline_glucose"].between(40, 400)
         & df["hour"].between(0, 23)
+        & df["peak_minute"].between(1, 120)
     )
 
     clean = df.loc[keep_mask].copy()
@@ -322,7 +330,7 @@ def clean_dataset(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
     return clean, removed
 
 
-def run_base_dataset_builder(save_intermediate: bool) -> pd.DataFrame:
+def build_base_dataset(save_intermediate: bool) -> pd.DataFrame:
     csv_files = sorted(
         p for p in CGMACROS_DIR.rglob("*.csv")
         if p.stem.startswith("CGMacros-")
@@ -331,7 +339,7 @@ def run_base_dataset_builder(save_intermediate: bool) -> pd.DataFrame:
     if not csv_files:
         raise RuntimeError(f"No CGMacros CSV files found under: {CGMACROS_DIR}")
 
-    print("=== 1단계: 원본 CGMacros 데이터에서 기본 데이터셋 생성 ===")
+    print("Building base dataset from CGMacros")
     print(f"found csv files: {len(csv_files)}")
 
     all_rows = []
@@ -347,7 +355,7 @@ def run_base_dataset_builder(save_intermediate: bool) -> pd.DataFrame:
             continue
 
         df = normalize_columns(df)
-        df = build_glucose_column(df)
+        df = add_glucose_column(df)
         df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors="coerce")
 
         meals = extract_meal_rows(df)
@@ -387,18 +395,18 @@ def run_base_dataset_builder(save_intermediate: bool) -> pd.DataFrame:
 
     if save_intermediate:
         clean_df.to_csv(INTERMEDIATE_CLEAN_CSV, index=False)
-        final_df.to_csv(PROCESSED_DIR / "final_no_activity_plus_raw.csv", index=False)
-        removed_df.to_csv(PROCESSED_DIR / "final_no_activity_plus_removed.csv", index=False)
-        pd.DataFrame(summary_rows).to_csv(PROCESSED_DIR / "final_no_activity_plus_subject_summary.csv", index=False)
+        final_df.to_csv(RAW_CSV, index=False)
+        removed_df.to_csv(REMOVED_CSV, index=False)
+        pd.DataFrame(summary_rows).to_csv(SUBJECT_SUMMARY_CSV, index=False)
 
     if save_intermediate:
         print("\n=== 저장 완료 ===")
         print("-", INTERMEDIATE_CLEAN_CSV)
-        print("-", PROCESSED_DIR / "final_no_activity_plus_raw.csv")
-        print("-", PROCESSED_DIR / "final_no_activity_plus_removed.csv")
-        print("-", PROCESSED_DIR / "final_no_activity_plus_subject_summary.csv")
+        print("-", RAW_CSV)
+        print("-", REMOVED_CSV)
+        print("-", SUBJECT_SUMMARY_CSV)
 
-    print("\n=== 최종 통계 ===")
+    print("\nBase dataset summary")
     print("raw rows:", len(final_df))
     print("clean rows:", len(clean_df))
     print("removed rows:", len(removed_df))
@@ -427,8 +435,8 @@ def load_gender_map() -> pd.DataFrame:
     return gender_df
 
 
-def attach_gender_and_save(final_df: pd.DataFrame) -> pd.DataFrame:
-    print("\n=== 2단계: Gender 컬럼 병합 ===")
+def attach_gender(final_df: pd.DataFrame) -> pd.DataFrame:
+    print("\nAttaching gender column")
 
     final_df = final_df.copy()
     gender_df = load_gender_map()
@@ -450,8 +458,8 @@ def attach_gender_and_save(final_df: pd.DataFrame) -> pd.DataFrame:
     return merged_df
 
 
-def split_train_test(df: pd.DataFrame, save_intermediate: bool):
-    print("\n=== 3단계: train/test 분할 ===")
+def split_dataset(df: pd.DataFrame, save_intermediate: bool):
+    print("\nSplitting train/test")
 
     df = df.copy()
 
@@ -499,7 +507,7 @@ def split_train_test(df: pd.DataFrame, save_intermediate: bool):
         print(missing_test_subjects)
 
 
-def cleanup_intermediate_files():
+def remove_intermediate_files():
     for path in INTERMEDIATE_FILES:
         if path.exists():
             path.unlink()
@@ -508,14 +516,14 @@ def cleanup_intermediate_files():
 def main(save_intermediate: bool = False):
     PROCESSED_DIR.mkdir(parents=True, exist_ok=True)
 
-    clean_df = run_base_dataset_builder(save_intermediate=save_intermediate)
-    merged_df = attach_gender_and_save(clean_df)
-    split_train_test(merged_df, save_intermediate=save_intermediate)
+    clean_df = build_base_dataset(save_intermediate=save_intermediate)
+    merged_df = attach_gender(clean_df)
+    split_dataset(merged_df, save_intermediate=save_intermediate)
 
     if not save_intermediate:
-        cleanup_intermediate_files()
+        remove_intermediate_files()
 
-    print("\n=== 전체 완료 ===")
+    print("\nDone")
     print(FINAL_CSV)
     print(TRAIN_CSV)
     print(TEST_CSV)

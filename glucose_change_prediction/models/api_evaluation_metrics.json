@@ -1,0 +1,42 @@
+{
+  "server_base_env": "GLUCOSE_API_BASE_URL",
+  "predict_path": "/predict-glucose",
+  "allowed_meal_types": [
+    "breakfast",
+    "dinner",
+    "lunch"
+  ],
+  "test_rows_total": 252,
+  "test_rows_valid": 252,
+  "test_subjects": 9,
+  "results": {
+    "delta30": {
+      "mae": 20.681137566137565,
+      "rmse": 27.443255738667723,
+      "r2": 0.21140422648476498
+    },
+    "delta60": {
+      "mae": 34.96328042328042,
+      "rmse": 44.40246593721022,
+      "r2": 0.16394035481770175
+    },
+    "delta120": {
+      "mae": 27.217037037037038,
+      "rmse": 38.23154335402955,
+      "r2": 0.3882673710349269
+    },
+    "peakDelta": {
+      "mae": 25.616084656084656,
+      "rmse": 35.006121873276705,
+      "r2": 0.39175385043445643
+    },
+    "peakMinute": {
+      "mae": 29.166666666666668,
+      "rmse": 34.54557606115181,
+      "exact_match": 0.007936507936507936,
+      "within_5min": 0.1111111111111111,
+      "within_10min": 0.21031746031746032,
+      "within_15min": 0.2976190476190476
+    }
+  }
+}
